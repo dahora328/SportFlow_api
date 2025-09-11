@@ -13,22 +13,25 @@ return new class extends Migration
     {
         Schema::create('athletes', function (Blueprint $table) {
             $table->id();
-            $table->string('full_name');                       // Nome completo
-            $table->date('birth_date');                        // Data de nascimento
-            $table->string('marital_status');                  // Estado civil
-            $table->string('gender');                          // Sexo
-            $table->string('document', 18)->unique();          // CPF/CNPJ
-            $table->string('address');                         // Endereço
-            $table->string('number', 10);                      // Número
-            $table->string('neighborhood');                    // Bairro
-            $table->string('zip_code', 12);                    // CEP
-            $table->string('state', 2);                        // Estado
-            $table->string('city');                            // Cidade
-            $table->string('mobile_phone', 20);                // Celular
-            $table->string('secondary_phone', 20)->nullable(); // Celular 2 / telefone
-            $table->string('email')->nullable();               // E-mail
-            $table->string('mother_name')->nullable();         // Nome da mãe
-            $table->string('father_name')->nullable();         // Nome do pai
+            $table->string('full_name')->comment('Nome completo do atleta');
+            $table->date('birth_date')->comment('Data de nascimento');
+            $table->string('marital_status')->comment('Estado civil (solteiro, casado, divorciado, viúvo)');
+            $table->string('gender')->comment('Sexo/gênero (masculino, feminino, outro)');
+            $table->string('document', 18)->unique()->comment('CPF ou CNPJ (documento único de identificação)');
+            $table->string('address')->comment('Logradouro (rua, avenida, etc.)');
+            $table->string('number', 10)->comment('Número do endereço');
+            $table->string('neighborhood')->comment('Bairro');
+            $table->string('zip_code', 12)->comment('CEP (código postal brasileiro)');
+            $table->string('state', 2)->comment('Estado (sigla UF com 2 caracteres)');
+            $table->string('city')->comment('Cidade');
+            $table->string('mobile_phone', 20)->comment('Telefone celular principal (com DDD)');
+            $table->string('secondary_phone', 20)->nullable()->comment('Telefone secundário ou fixo');
+            $table->string('email')->nullable()->comment('E-mail para contato');
+            $table->string('mother_name')->nullable()->comment('Nome completo da mãe');
+            $table->string('father_name')->nullable()->comment('Nome completo do pai');
+            $table->unsignedBigInteger('owner_id')->comment('ID do usuário proprietário do registro');
+            $table->foreign('owner_id')->references('id')->on('users')->onDelete('cascade')->comment('Chave estrangeira para o usuário proprietário do registro');
+            $table->softDeletes();
             $table->timestamps();
         });
     }
@@ -38,6 +41,9 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('athletes', function (Blueprint $table) {
+            $table->dropForeign(['owner_id']); // drop da FK
+        });
         Schema::dropIfExists('athletes');
     }
 };
