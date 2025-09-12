@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreAthletesRequest;
+use App\Http\Requests\UpdateAthletesRequest;
 use App\Models\Athletes;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -67,9 +68,20 @@ class AthletesController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, int $id)
+    public function update(UpdateAthletesRequest $request, int $id): JsonResponse
     {
-        //
+        $athlete = Athletes::find($id);
+        if (!$athlete) {
+            return response()->json([
+                'message' => 'Atleta não encontrado'
+            ], 404);
+        }
+        $data = $request->validated();
+        $athlete->update($data);
+        return response()->json([
+            'message' => 'Atleta atualizado com sucesso!',
+            'athlete' => $athlete
+        ]);
     }
 
     /**
@@ -77,7 +89,7 @@ class AthletesController extends Controller
      */
     public function destroy(int $id)
     {
-        $athlete = Athletes::findOrFail($id);
+        $athlete = Athletes::find($id);
         if (!$athlete) {
             return response()->json([
                 'message' => 'Atleta não encontrado'
