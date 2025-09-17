@@ -29,7 +29,7 @@ class AthletesPolicy
      */
     public function create(User $user): bool
     {
-        return true;
+        return $user->id;
     }
 
     /**
@@ -37,7 +37,7 @@ class AthletesPolicy
      */
     public function update(User $user, Athletes $athletes): bool
     {
-        return false;
+        return $user->id == $athletes->owner_id;
     }
 
     /**
