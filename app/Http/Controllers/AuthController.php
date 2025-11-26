@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
@@ -7,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str as SupportStr;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
@@ -28,7 +30,8 @@ class AuthController extends Controller
         }
 
         return response()->json([
-            'user'          => $user, 'message' => 'User successfully registered',
+            'user'          => $user,
+            'message' => 'User successfully registered',
             'authorization' => [
                 'token'      => $token,
                 'type'       => 'bearer',
@@ -49,9 +52,49 @@ class AuthController extends Controller
             return response()->json(['error' => 'Could not create token'], 500);
         }
 
+        $refresh_token = SupportStr::random(60);
+
+        $user = auth()->user();
+        $user->refresh_token = SupportStr::random(60);
+        $user->refresh_token_expires_at = now()->addDays(7);
+        $user->save();
+
         return response()->json([
             'token'      => $token,
+            'token_type' => 'bearer',
             'expires_in' => (int) JWTAuth::factory()->getTTL() * 60,
+            'refresh_token' => $user->refresh_token,
+        ]);
+    }
+
+    public function refresh(Request $request)
+    {
+        $refreshToken = $request->refresh_token;
+
+        if (!$refreshToken) {
+            return response()->json(['error' => 'Refresh token requerido'], 400);
+        }
+
+        // buscar hash
+        $hash = hash('sha256', $refreshToken);
+
+        $user = User::where('refresh_token', $hash)->first();
+
+        if (!$user) {
+            return response()->json(['error' => 'Refresh token inválido'], 401);
+        }
+
+        if ($user->refresh_token_expires_at < now()) {
+            return response()->json(['error' => 'Refresh token expirado'], 401);
+        }
+
+        // tudo certo → gerar novo access token
+        $newAccessToken = auth()->login($user);
+
+        return response()->json([
+            'access_token' => $newAccessToken,
+            'token_type' => 'bearer',
+            'expires_in' => auth()->factory()->getTTL() * 60
         ]);
     }
 
