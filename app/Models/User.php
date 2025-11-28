@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -37,6 +38,8 @@ class User extends Authenticatable implements JWTSubject
         'name',
         'email',
         'password',
+        'refresh_token',
+        'refresh_token_expires_at',
     ];
 
     /**

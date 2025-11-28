@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->text('refresh_token')->nullable();
-            $table->dateTime('refresh_token_expires_at')->nullable();
+            $table->string('refresh_token')->nullable();
+            $table->timestamp('refresh_token_expires_at')->nullable();
         });
     }
 
@@ -23,8 +23,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('refresh_token');
-            $table->dropColumn('refresh_token_expires_at');
+            $table->dropColumn(['refresh_token', 'refresh_token_expires_at']);
         });
     }
 };
