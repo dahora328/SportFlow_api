@@ -58,6 +58,7 @@ class AuthController extends Controller
         $user->save();
 
         return response()->json([
+            'user_id' => $user->id,
             'access_token' => $token,
             'refresh_token' => $plainRefreshToken, // ← token puro enviado ao front
         ]);
