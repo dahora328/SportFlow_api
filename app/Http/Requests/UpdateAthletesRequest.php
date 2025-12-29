@@ -22,38 +22,23 @@ class UpdateAthletesRequest extends FormRequest
      */
     public function rules(): array
     {
-        $athlete = $this->route('athlete');
+        $athlete = $this->route('athlete') ? $this->route('athlete')->id : null;
 
         return [
             'full_name'     => 'nullable|string|max:255',
             'birth_date'    => 'nullable|date',
             'marital_status' => 'nullable|string|max:50',
             'gender'        => 'nullable|string|max:50',
-            'document'      => [
-                'nullable',
-                'string',
-                'max:18',
-                Rule::unique('athletes')->ignore($athlete->id)
-            ],
+            'document' => 'required|unique:athletes,document,' . $athlete,
             'address'       => 'nullable|string|max:255',
             'number'        => 'nullable|string|max:10',
             'neighborhood'  => 'nullable|string|max:255',
             'zip_code'      => 'nullable|string|max:10',
             'state'         => 'nullable|string|max:100',
             'city'          => 'nullable|string|max:100',
-            'mobile_phone'  => [
-                'nullable',
-                'string',
-                'max:15',
-                Rule::unique('athletes')->ignore($athlete->id)
-            ],
+            'mobile_phone'  => 'nullable|string|max:15,' . $athlete,
             'secondary_phone' => 'nullable|string|max:15',
-            'email'         => [
-                'nullable',
-                'email',
-                'max:255',
-                Rule::unique('athletes')->ignore($athlete->id)
-            ],
+            'email'         => 'nullable|email|max:255,' . $athlete,
             'mother_name'   => 'nullable|string|max:255',
             'father_name'   => 'nullable|string|max:255',
             'owner_id'      => 'nullable|exists:users,id',
