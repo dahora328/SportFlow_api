@@ -18,4 +18,5 @@ Route::middleware(['auth:api'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     Route::apiResource('athletes', AthletesController::class)->names('athletes');
+    Route::get('/athletes/search/{name}', [AthletesController::class, 'searchAthletes'])->name('athletes.search');
 });
