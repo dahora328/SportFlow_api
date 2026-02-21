@@ -124,4 +124,15 @@ class AthletesController extends Controller
             'message' => 'Atleta excluído com sucesso!'
         ]);
     }
+
+    public function searchAthletes(string $name): JsonResponse
+    {
+        $athletes = Athletes::where('name', 'like', "%$name%")->get();
+        if ($athletes->isEmpty()) {
+            return response()->json([
+                'message' => 'Nenhum atleta encontrado com o nome: ' . $name
+            ], 404);
+        }
+        return response()->json($athletes);
+    }
 }
