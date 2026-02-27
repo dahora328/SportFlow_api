@@ -17,6 +17,7 @@ Route::middleware(['auth:api'])->group(function () {
     Route::put('/user', [AuthController::class, 'updateUser'])->name('user.update');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+
+    Route::get('/athletes/search', [AthletesController::class, 'searchByName'])->name('athletes.search');
     Route::apiResource('athletes', AthletesController::class)->names('athletes');
-    Route::get('/athletes/search/{name}', [AthletesController::class, 'searchAthletes'])->name('athletes.search');
 });
