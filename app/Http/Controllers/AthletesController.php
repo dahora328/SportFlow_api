@@ -5,8 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreAthletesRequest;
 use App\Http\Requests\UpdateAthletesRequest;
-use App\Models\Athletes;
+use App\Models\Athlete;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class AthletesController extends Controller
@@ -16,7 +17,7 @@ class AthletesController extends Controller
      */
     public function index(): JsonResponse
     {
-        $athletes = Athletes::all();
+        $athletes = Athlete::all();
         return response()->json($athletes);
     }
 
@@ -40,7 +41,7 @@ class AthletesController extends Controller
             return response()->json(['error' => 'Usuário não autenticado'], 401);
         }
         $data['owner_id'] = $user->id;
-        $athlete = Athletes::create($data);
+        $athlete = Athlete::create($data);
         // dd($athlete);
         return response()->json([
             'message' => 'Atleta criado com sucesso!',
@@ -48,18 +49,50 @@ class AthletesController extends Controller
         ], 201);
     }
 
+    public function searchByName(Request $request): JsonResponse
+    {
+        $name = $request->query('name');
+
+        if (!$name) {
+            return response()->json([
+                'message' => 'Informe o nome para pesquisa (parâmetro name).'
+            ], 422);
+        }
+
+        $athletes = Athlete::where('full_name', 'like', "%{$name}%")->get();
+
+        if ($athletes->isEmpty()) {
+            return response()->json([
+                'message' => 'Nenhum atleta encontrado com o nome: ' . $name
+            ], 404);
+        }
+
+        return response()->json($athletes, 200);
+    }
+
     /**
      * Display the specified resource.
      */
-    public function show(int $id): JsonResponse
+    public function show($id): JsonResponse
     {
-        $athlete = Athletes::findOrFail($id);
+        // Converte string para int se possível
+        $numericId = (int) $id;
+
+        if ($numericId <= 0) {
+            return response()->json([
+                'message' => 'ID inválido: ' . $id
+            ], 400);
+        }
+
+        $athlete = Athlete::find($numericId);
+
         if (!$athlete) {
             return response()->json([
-                'message' => 'Atleta não encontrado'
+                'message' => 'Atleta não encontrado com ID: ' . $numericId
             ], 404);
         }
-        return response()->json($athlete);
+
+        return response()->json($athlete, 200);
     }
 
     /**
@@ -73,7 +106,7 @@ class AthletesController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateAthletesRequest $request, Athletes $athlete): JsonResponse
+    public function update(UpdateAthletesRequest $request, Athlete $athlete): JsonResponse
     {
         try {
             // Os dados já foram validados automaticamente pelo FormRequest
@@ -113,7 +146,7 @@ class AthletesController extends Controller
      */
     public function destroy(int $id)
     {
-        $athlete = Athletes::find($id);
+        $athlete = Athlete::find($id);
         if (!$athlete) {
             return response()->json([
                 'message' => 'Atleta não encontrado'
@@ -123,16 +156,5 @@ class AthletesController extends Controller
         return response()->json([
             'message' => 'Atleta excluído com sucesso!'
         ]);
-    }
-
-    public function searchAthletes(string $name): JsonResponse
-    {
-        $athletes = Athletes::where('name', 'like', "%$name%")->get();
-        if ($athletes->isEmpty()) {
-            return response()->json([
-                'message' => 'Nenhum atleta encontrado com o nome: ' . $name
-            ], 404);
-        }
-        return response()->json($athletes);
     }
 }
