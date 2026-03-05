@@ -2,7 +2,8 @@
 
 namespace App\Providers;
 
-use App\Models\Athletes;
+use App\Models\Athlete;
+use Illuminate\Support\Facades\Gate;
 use App\Policies\AthletesPolicy;
 use Illuminate\Support\ServiceProvider;
 
@@ -10,7 +11,7 @@ class AppServiceProvider extends ServiceProvider
 {
 
     protected $policies = [
-        Athletes::class => AthletesPolicy::class, // Mapeia o modelo Athletes para a AthletesPolicy
+        \App\Models\Athlete::class => \App\Policies\AthletesPolicy::class, // Map Athlete model to AthletesPolicy
     ];
     /**
      * Register any application services.
@@ -25,6 +26,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Register policies manually (in environments without default policy loader)
+        Gate::policy(Athlete::class, AthletesPolicy::class);
     }
 }

@@ -71,6 +71,22 @@ class AthletesController extends Controller
     }
 
     /**
+     * Find athletes by name (non-conflicting endpoint)
+     */
+    public function findByName(string $name): JsonResponse
+    {
+        $athletes = Athlete::where('full_name', 'like', "%{$name}%")->get();
+
+        if ($athletes->isEmpty()) {
+            return response()->json([
+                'message' => 'Nenhum atleta encontrado com o nome: ' . $name
+            ], 404);
+        }
+
+        return response()->json($athletes, 200);
+    }
+
+    /**
      * Display the specified resource.
      */
     public function show($id): JsonResponse

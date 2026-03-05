@@ -2,9 +2,8 @@
 
 namespace App\Policies;
 
-use App\Models\Athletes;
+use App\Models\Athlete;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class AthletesPolicy
 {
@@ -19,7 +18,7 @@ class AthletesPolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Athletes $athletes): bool
+    public function view(User $user, Athlete $athlete): bool
     {
         return false;
     }
@@ -35,15 +34,30 @@ class AthletesPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Athletes $athletes): bool
+    public function update(User $user, Athlete $athlete): bool
     {
-        return $user->id == $athletes->owner_id;
+        // Owner can update
+        $authorized = $user->id == $athlete->owner_id;
+        // Admin override: allow if user has is_admin flag set
+        if (!$authorized && !empty($user->is_admin)) {
+            $authorized = (bool) $user->is_admin;
+        }
+
+        // Optional debug log (commented out by default)
+        // \Illuminate\Support\Facades\Log::info('AthletesPolicy: update check', [
+        //     'user_id' => $user->id,
+        //     'athlete_id' => $athlete->id,
+        //     'owner_id' => $athlete->owner_id,
+        //     'is_admin' => (bool) $user->is_admin,
+        //     'authorized' => $authorized,
+        // ]);
+        return $authorized;
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Athletes $athletes): bool
+    public function delete(User $user, Athlete $athlete): bool
     {
         return false;
     }
@@ -51,7 +65,7 @@ class AthletesPolicy
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, Athletes $athletes): bool
+    public function restore(User $user, Athlete $athlete): bool
     {
         return false;
     }
@@ -59,7 +73,7 @@ class AthletesPolicy
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, Athletes $athletes): bool
+    public function forceDelete(User $user, Athlete $athlete): bool
     {
         return false;
     }

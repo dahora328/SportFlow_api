@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Athletes;
+use App\Models\Athlete;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 

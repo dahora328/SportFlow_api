@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Athletes;
+use App\Models\Athlete;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreAthletesRequest extends FormRequest
@@ -12,7 +12,7 @@ class StoreAthletesRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user() && $this->user()->can('create', Athletes::class);
+        return $this->user() && $this->user()->can('create', Athlete::class);
     }
 
     /**
