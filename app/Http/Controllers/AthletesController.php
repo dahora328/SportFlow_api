@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Log;
 class AthletesController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Get all athletes
      */
     public function index(): JsonResponse
     {
@@ -30,7 +30,7 @@ class AthletesController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Create a new athlete
      */
     public function store(StoreAthletesRequest $request): JsonResponse
     {
@@ -48,6 +48,10 @@ class AthletesController extends Controller
             'athlete' => $athlete
         ], 201);
     }
+
+    /**
+     * Get athletes by name (search)
+     */
 
     public function searchByName(Request $request): JsonResponse
     {
@@ -71,25 +75,9 @@ class AthletesController extends Controller
     }
 
     /**
-     * Find athletes by name (non-conflicting endpoint)
+     * Get athlete by ID
      */
-    public function findByName(string $name): JsonResponse
-    {
-        $athletes = Athlete::where('full_name', 'like', "%{$name}%")->get();
-
-        if ($athletes->isEmpty()) {
-            return response()->json([
-                'message' => 'Nenhum atleta encontrado com o nome: ' . $name
-            ], 404);
-        }
-
-        return response()->json($athletes, 200);
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show($id): JsonResponse
+    public function show(int $id): JsonResponse
     {
         // Converte string para int se possível
         $numericId = (int) $id;
@@ -120,7 +108,7 @@ class AthletesController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update athlete by ID
      */
     public function update(UpdateAthletesRequest $request, Athlete $athlete): JsonResponse
     {
@@ -158,7 +146,7 @@ class AthletesController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove athlete by ID
      */
     public function destroy(int $id)
     {
