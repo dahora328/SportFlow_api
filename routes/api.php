@@ -21,3 +21,8 @@ Route::middleware(['auth:api'])->group(function () {
     Route::get('/athletes/search', [AthletesController::class, 'searchByName'])->name('athletes.search');
     Route::apiResource('athletes', AthletesController::class)->names('athletes');
 });
+
+// Fallback 404 para rotas não encontradas na API
+Route::fallback(function () {
+    return response()->json(['message' => 'Página não existe'], 404);
+});
