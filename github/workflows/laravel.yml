@@ -1,0 +1,22 @@
+name: Laravel Teste Inicial
+
+on:
+  push:
+    branches: ['main']
+jobs:
+  teste:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v3
+
+      - name: Instalar PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+
+      - name: Instalar dependências
+        run: composer install
+
+      - name: Rodar testes
+        run: php artisan test
