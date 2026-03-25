@@ -1,5 +1,5 @@
 name: Laravel Teste Inicial
-runns-name: Teste Laravel
+runs-name: Teste Laravel
 
 on: [push]
 jobs:
