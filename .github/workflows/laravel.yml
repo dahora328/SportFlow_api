@@ -23,8 +23,11 @@ jobs:
       - name: Instalar dependências
         run: composer install
 
-      - name: Gerar chave
+      - name: Gerar chave APP
         run: php artisan key:generate
+
+      - name: Gerar JWT Secret
+        run: php artisan jwt:secret
 
       - name: Rodar migrations
         run: php artisan migrate
