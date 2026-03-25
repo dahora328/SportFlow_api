@@ -1,20 +1,33 @@
-name: Laravel Teste Inicial
+name: Laravel CI
 
-on: [push]
+on:
+  push:
+    branches: [ "main" ]
+
 jobs:
-  teste:
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Baixar código
+      - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Instalar PHP
+      - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: 8.2
 
+      - name: Copiar .env
+        run: cp .env.example .env
+
       - name: Instalar dependências
         run: composer install
+
+      - name: Gerar chave
+        run: php artisan key:generate
+
+      - name: Rodar migrations
+        run: php artisan migrate
 
       - name: Rodar testes
         run: php artisan test
