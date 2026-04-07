@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class Athlete extends Model
 {
@@ -32,6 +33,7 @@ class Athlete extends Model
         'mother_name',
         'father_name',
         'owner_id',
+        'photo_path',
     ];
 
 
@@ -51,6 +53,11 @@ class Athlete extends Model
             }
         });
     }
+
+    public function getFotoUrlAttribute(){
+        return $this->photo_path ? Storage::url($this->photo_path) : null;
+    }
+
     public function owner()
     {
         return $this->belongsTo(User::class, 'owner_id');
