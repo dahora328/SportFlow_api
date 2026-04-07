@@ -41,6 +41,7 @@ class UpdateAthletesRequest extends FormRequest
             'email'         => 'nullable|email|max:255,' . $athlete,
             'mother_name'   => 'nullable|string|max:255',
             'father_name'   => 'nullable|string|max:255',
+            'photo_path'   => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'owner_id'      => 'nullable|exists:users,id',
         ];
     }
