@@ -9,6 +9,7 @@ use App\Models\Athlete;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class AthletesController extends Controller
 {
@@ -113,14 +114,28 @@ class AthletesController extends Controller
     public function update(UpdateAthletesRequest $request, Athlete $athlete): JsonResponse
     {
         try {
-            // Os dados já foram validados automaticamente pelo FormRequest
             $validatedData = $request->validated();
 
-            // Atualiza apenas os campos que foram enviados na request
+            // TRATAR UPLOAD DE IMAGEM
+            if ($request->hasFile('photo_path')) {
+
+                // Remove imagem antiga
+                if ($athlete->photo_path) {
+                    Storage::disk('public')->delete($athlete->photo_path);
+                }
+
+                // Salva nova imagem
+                $path = $request->file('photo_path')->store('athletes', 'public');
+
+                // Adiciona no array validado
+                $validatedData['photo_path'] = $path;
+            }
+
+            // Preenche os dados
             $athlete->fill($validatedData);
 
-            // Salva as alterações
             if ($athlete->isDirty()) {
+
                 $athlete->save();
                 $athlete->refresh();
 
@@ -129,13 +144,14 @@ class AthletesController extends Controller
                     'athlete' => $athlete,
                     'changed_fields' => array_keys($athlete->getChanges())
                 ]);
-            } else {
-                return response()->json([
-                    'message' => 'Nenhum dado foi alterado.',
-                    'athlete' => $athlete
-                ]);
             }
+
+            return response()->json([
+                'message' => 'Nenhum dado foi alterado.',
+                'athlete' => $athlete
+            ]);
         } catch (\Exception $e) {
+
             Log::error('Erro ao atualizar atleta: ' . $e->getMessage());
 
             return response()->json([
@@ -156,6 +172,12 @@ class AthletesController extends Controller
                 'message' => 'Atleta não encontrado'
             ], 404);
         }
+
+        //Remove a foto do storage se existir
+        if ($athlete->photo_path) {
+            Storage::disk('public')->delete($athlete->photo_path);
+        }
+
         $athlete->delete();
         return response()->json([
             'message' => 'Atleta excluído com sucesso!'
