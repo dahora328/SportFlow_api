@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateAthletesRequest;
 use App\Models\Athlete;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
@@ -35,19 +36,30 @@ class AthletesController extends Controller
      */
     public function store(StoreAthletesRequest $request): JsonResponse
     {
-        $data = $request->validated();
         $user = auth('api')->user();
 
         if (!$user) {
             return response()->json(['error' => 'Usuário não autenticado'], 401);
         }
-        $data['owner_id'] = $user->id;
-        $athlete = Athlete::create($data);
-        // dd($athlete);
-        return response()->json([
-            'message' => 'Atleta criado com sucesso!',
-            'athlete' => $athlete
-        ], 201);
+
+        return DB::transaction(function () use ($request, $user) {
+
+            $data = $request->validated();
+            $data['owner_id'] = $user->id;
+
+            // TRATAR UPLOAD ANTES
+            if ($request->hasFile('photo_path')) {
+                $path = $request->file('photo_path')->store('athletes', 'public');
+                $data['photo_path'] = $path;
+            }
+
+            $athlete = Athlete::create($data);
+
+            return response()->json([
+                'message' => 'Atleta criado com sucesso!',
+                'athlete' => $athlete
+            ], 201);
+        });
     }
 
     /**
@@ -116,43 +128,56 @@ class AthletesController extends Controller
         try {
             $validatedData = $request->validated();
 
+            DB::beginTransaction();
+
             // TRATAR UPLOAD DE IMAGEM
             if ($request->hasFile('photo_path')) {
 
-                // Remove imagem antiga
-                if ($athlete->photo_path) {
+                // Remove imagem antiga (se existir)
+                if (!empty($athlete->photo_path)) {
                     Storage::disk('public')->delete($athlete->photo_path);
                 }
 
                 // Salva nova imagem
-                $path = $request->file('photo_path')->store('athletes', 'public');
-
-                // Adiciona no array validado
-                $validatedData['photo_path'] = $path;
+                $validatedData['photo_path'] = $request
+                    ->file('photo_path')
+                    ->store('athletes', 'public');
             }
 
             // Preenche os dados
             $athlete->fill($validatedData);
 
-            if ($athlete->isDirty()) {
-
-                $athlete->save();
-                $athlete->refresh();
+            if (!$athlete->isDirty()) {
+                DB::rollBack();
 
                 return response()->json([
-                    'message' => 'Atleta atualizado com sucesso!',
-                    'athlete' => $athlete,
-                    'changed_fields' => array_keys($athlete->getChanges())
-                ]);
+                    'message' => 'Nenhum dado foi alterado.',
+                    'athlete' => $athlete
+                ], 200);
             }
 
+            $athlete->save();
+
+            // Captura campos alterados ANTES do refresh
+            $changedFields = array_keys($athlete->getChanges());
+
+            $athlete->refresh();
+
+            DB::commit();
+
             return response()->json([
-                'message' => 'Nenhum dado foi alterado.',
-                'athlete' => $athlete
-            ]);
+                'message' => 'Atleta atualizado com sucesso!',
+                'athlete' => $athlete,
+                'changed_fields' => $changedFields
+            ], 200);
         } catch (\Exception $e) {
 
-            Log::error('Erro ao atualizar atleta: ' . $e->getMessage());
+            DB::rollBack();
+
+            Log::error('Erro ao atualizar atleta', [
+                'error' => $e->getMessage(),
+                'athlete_id' => $athlete->id ?? null
+            ]);
 
             return response()->json([
                 'message' => 'Erro interno ao atualizar atleta',
