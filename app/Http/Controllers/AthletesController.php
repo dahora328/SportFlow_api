@@ -20,7 +20,11 @@ class AthletesController extends Controller
     public function index(): JsonResponse
     {
         $athletes = Athlete::all();
-        return response()->json($athletes);
+        return response()->json([
+            'success' => true,
+            'message' => 'Atletas lsitados com sucesso!',
+            'data' => $athletes
+        ], 200);
     }
 
     /**
@@ -41,25 +45,32 @@ class AthletesController extends Controller
         if (!$user) {
             return response()->json(['error' => 'Usuário não autenticado'], 401);
         }
+        try {
+            $athlete = DB::transaction(function () use ($request, $user) {
 
-        return DB::transaction(function () use ($request, $user) {
+                $data = $request->validated();
+                $data['owner_id'] = $user->id;
 
-            $data = $request->validated();
-            $data['owner_id'] = $user->id;
+                // Upload
+                if ($request->hasFile('photo_path')) {
+                    $path = $request->file('photo_path')->store('athletes', 'public');
+                    $data['photo_path'] = $path;
+                }
 
-            // TRATAR UPLOAD ANTES
-            if ($request->hasFile('photo_path')) {
-                $path = $request->file('photo_path')->store('athletes', 'public');
-                $data['photo_path'] = $path;
-            }
-
-            $athlete = Athlete::create($data);
+                return Athlete::create($data);
+            });
 
             return response()->json([
+                'success' => true,
                 'message' => 'Atleta criado com sucesso!',
-                'athlete' => $athlete
+                'data' => $athlete,
             ], 201);
-        });
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao criar atleta',
+            ], 500);
+        }
     }
 
     /**
@@ -97,7 +108,8 @@ class AthletesController extends Controller
 
         if ($numericId <= 0) {
             return response()->json([
-                'message' => 'ID inválido: ' . $id
+                'success' => false,
+                'message' => 'ID inválido: ' . $id,
             ], 400);
         }
 
@@ -105,11 +117,16 @@ class AthletesController extends Controller
 
         if (!$athlete) {
             return response()->json([
-                'message' => 'Atleta não encontrado com ID: ' . $numericId
+                'success' => false,
+                'message' => 'Atleta não encontrado com ID: ' . $numericId,
             ], 404);
         }
 
-        return response()->json($athlete, 200);
+        return response()->json([
+            'sucess' => true,
+            'message' => 'Atleta encontrado com sucesso!',
+            'data' => $athlete,
+        ], 200);
     }
 
     /**
@@ -151,6 +168,7 @@ class AthletesController extends Controller
                 DB::rollBack();
 
                 return response()->json([
+                    'success' => true,
                     'message' => 'Nenhum dado foi alterado.',
                     'athlete' => $athlete
                 ], 200);
@@ -194,7 +212,8 @@ class AthletesController extends Controller
         $athlete = Athlete::find($id);
         if (!$athlete) {
             return response()->json([
-                'message' => 'Atleta não encontrado'
+                'success' => false,
+                'message' => 'Atleta não encontrado',
             ], 404);
         }
 
@@ -205,7 +224,9 @@ class AthletesController extends Controller
 
         $athlete->delete();
         return response()->json([
-            'message' => 'Atleta excluído com sucesso!'
-        ]);
+            'sucess' => true,
+            'message' => 'Atleta excluído com sucesso!',
+            'data' => null
+        ], 204);
     }
 }
