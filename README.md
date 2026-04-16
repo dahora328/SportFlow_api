@@ -134,8 +134,3 @@ Notas úteis
   README para utilitários). Contribuição
 - Adicione testes de autorização/integração caso altere regras.
 - Siga o padrão existente de mensagens de retorno e validação.
-
-Notas finais
-
-- Se precisar de ajuste rápido para endpoints específicos ou comportamento de
-  policy, estou à disposição.
