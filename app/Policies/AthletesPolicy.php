@@ -20,7 +20,7 @@ class AthletesPolicy
      */
     public function view(User $user, Athlete $athlete): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -42,15 +42,6 @@ class AthletesPolicy
         if (!$authorized && !empty($user->is_admin)) {
             $authorized = (bool) $user->is_admin;
         }
-
-        // Optional debug log (commented out by default)
-        // \Illuminate\Support\Facades\Log::info('AthletesPolicy: update check', [
-        //     'user_id' => $user->id,
-        //     'athlete_id' => $athlete->id,
-        //     'owner_id' => $athlete->owner_id,
-        //     'is_admin' => (bool) $user->is_admin,
-        //     'authorized' => $authorized,
-        // ]);
         return $authorized;
     }
 
@@ -59,7 +50,7 @@ class AthletesPolicy
      */
     public function delete(User $user, Athlete $athlete): bool
     {
-        return false;
+        return $user->id === $athlete->owner_id;
     }
 
     /**
