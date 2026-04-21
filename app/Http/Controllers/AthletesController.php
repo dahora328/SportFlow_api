@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Http\Requests\StoreAthletesRequest;
 use App\Http\Requests\UpdateAthletesRequest;
+use App\Http\Resources\AthletesResource;
 use App\Models\Athlete;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,17 +16,44 @@ use Illuminate\Support\Facades\Storage;
 
 class AthletesController extends Controller
 {
+    use AuthorizesRequests;
     /**
-     * Get all athletes
+     * Get all or search by full_name athletes
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $athletes = Athlete::all();
+        $query = Athlete::query();
+
+        if ($request->filled('search')) {
+            $search = substr($request->search, 0, 50); // limita input
+            $query->where('full_name', 'like', "%{$search}%");
+        }
+
+        // Ordenação segura (whitelist)
+        $allowedSorts = ['full_name', 'created_at'];
+
+        $sort = $request->filled('sort') && in_array($request->sort, $allowedSorts) ? $request->sort : 'created_at';
+        $direction = $request->filled('direction') && in_array(strtolower($request->direction), ['asc', 'desc']) ? strtolower($request->direction) : 'desc';
+
+        if (!in_array($sort, $allowedSorts)) {
+            $sort = 'created_at';
+        }
+
+        if (!in_array($direction, ['asc', 'desc'])) {
+            $direction = 'desc';
+        }
+
+        $query->orderBy($sort, $direction);
+
+        $perPage = min($request->filled('per_page') ? (int) $request->per_page : 15, 100);
+
+        $athletes = $query->paginate($perPage);
+
         return response()->json([
             'success' => true,
-            'message' => 'Atletas lsitados com sucesso!',
-            'data' => $athletes
-        ], 200);
+            'message' => 'Atletas listados com sucesso',
+            'data' => AthletesResource::collection($athletes)
+        ]);
     }
 
     /**
@@ -40,21 +69,20 @@ class AthletesController extends Controller
      */
     public function store(StoreAthletesRequest $request): JsonResponse
     {
-        $user = auth('api')->user();
+        $this->authorize('create', Athlete::class);
 
-        if (!$user) {
-            return response()->json(['error' => 'Usuário não autenticado'], 401);
-        }
         try {
+            $user = auth()->user();
+
             $athlete = DB::transaction(function () use ($request, $user) {
 
                 $data = $request->validated();
                 $data['owner_id'] = $user->id;
 
-                // Upload
                 if ($request->hasFile('photo_path')) {
-                    $path = $request->file('photo_path')->store('athletes', 'public');
-                    $data['photo_path'] = $path;
+                    $data['photo_path'] = $request
+                        ->file('photo_path')
+                        ->store('athletes', 'public');
                 }
 
                 return Athlete::create($data);
@@ -66,64 +94,24 @@ class AthletesController extends Controller
                 'data' => $athlete,
             ], 201);
         } catch (\Throwable $e) {
+            Log::error($e);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Erro ao criar atleta',
+                'message' => 'Erro interno no servidor',
             ], 500);
         }
     }
 
     /**
-     * Get athletes by name (search)
-     */
-
-    public function searchByName(Request $request): JsonResponse
-    {
-        $name = $request->query('name');
-
-        if (!$name) {
-            return response()->json([
-                'message' => 'Informe o nome para pesquisa (parâmetro name).'
-            ], 422);
-        }
-
-        $athletes = Athlete::where('full_name', 'like', "%{$name}%")->get();
-
-        if ($athletes->isEmpty()) {
-            return response()->json([
-                'message' => 'Nenhum atleta encontrado com o nome: ' . $name
-            ], 404);
-        }
-
-        return response()->json($athletes, 200);
-    }
-
-    /**
      * Get athlete by ID
      */
-    public function show(int $id): JsonResponse
+    public function show(Athlete $athlete): JsonResponse
     {
-        // Converte string para int se possível
-        $numericId = (int) $id;
-
-        if ($numericId <= 0) {
-            return response()->json([
-                'success' => false,
-                'message' => 'ID inválido: ' . $id,
-            ], 400);
-        }
-
-        $athlete = Athlete::find($numericId);
-
-        if (!$athlete) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Atleta não encontrado com ID: ' . $numericId,
-            ], 404);
-        }
+        $this->authorize('view', $athlete);
 
         return response()->json([
-            'sucess' => true,
+            'success' => true,
             'message' => 'Atleta encontrado com sucesso!',
             'data' => $athlete,
         ], 200);
@@ -142,64 +130,58 @@ class AthletesController extends Controller
      */
     public function update(UpdateAthletesRequest $request, Athlete $athlete): JsonResponse
     {
+        $this->authorize('update', $athlete);
+
         try {
-            $validatedData = $request->validated();
+            $updatedAthlete = DB::transaction(function () use ($request, $athlete, &$changedFields) {
 
-            DB::beginTransaction();
+                $data = $request->validated();
 
-            // TRATAR UPLOAD DE IMAGEM
-            if ($request->hasFile('photo_path')) {
+                // Upload de imagem
+                if ($request->hasFile('photo_path')) {
 
-                // Remove imagem antiga (se existir)
-                if (!empty($athlete->photo_path)) {
-                    Storage::disk('public')->delete($athlete->photo_path);
+                    // Remove imagem antiga com segurança
+                    if ($athlete->photo_path && Storage::disk('public')->exists($athlete->photo_path)) {
+                        Storage::disk('public')->delete($athlete->photo_path);
+                    }
+
+                    $data['photo_path'] = $request
+                        ->file('photo_path')
+                        ->store('athletes', 'public');
                 }
 
-                // Salva nova imagem
-                $validatedData['photo_path'] = $request
-                    ->file('photo_path')
-                    ->store('athletes', 'public');
-            }
+                $athlete->fill($data);
 
-            // Preenche os dados
-            $athlete->fill($validatedData);
+                // Captura alterações antes de salvar
+                $changedFields = array_keys($athlete->getDirty());
 
-            if (!$athlete->isDirty()) {
-                DB::rollBack();
+                if (empty($changedFields)) {
+                    return $athlete;
+                }
 
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Nenhum dado foi alterado.',
-                    'athlete' => $athlete
-                ], 200);
-            }
+                $athlete->save();
 
-            $athlete->save();
-
-            // Captura campos alterados ANTES do refresh
-            $changedFields = array_keys($athlete->getChanges());
-
-            $athlete->refresh();
-
-            DB::commit();
+                return $athlete->fresh();
+            });
 
             return response()->json([
-                'message' => 'Atleta atualizado com sucesso!',
-                'athlete' => $athlete,
+                'success' => true,
+                'message' => empty($changedFields)
+                    ? 'Nenhum dado foi alterado.'
+                    : 'Atleta atualizado com sucesso!',
+                'data' => $updatedAthlete,
                 'changed_fields' => $changedFields
             ], 200);
-        } catch (\Exception $e) {
-
-            DB::rollBack();
+        } catch (\Throwable $e) {
 
             Log::error('Erro ao atualizar atleta', [
                 'error' => $e->getMessage(),
-                'athlete_id' => $athlete->id ?? null
+                'athlete_id' => $athlete->id,
             ]);
 
             return response()->json([
-                'message' => 'Erro interno ao atualizar atleta',
-                'error' => config('app.debug') ? $e->getMessage() : 'Erro interno'
+                'success' => false,
+                'message' => 'Erro interno no servidor',
             ], 500);
         }
     }
@@ -207,26 +189,33 @@ class AthletesController extends Controller
     /**
      * Remove athlete by ID
      */
-    public function destroy(int $id)
+    public function destroy(Athlete $athlete): JsonResponse
     {
-        $athlete = Athlete::find($id);
-        if (!$athlete) {
+        $this->authorize('delete', $athlete);
+
+        try {
+            DB::transaction(function () use ($athlete) {
+
+                // Remove arquivo se existir
+                if ($athlete->photo_path && Storage::disk('public')->exists($athlete->photo_path)) {
+                    Storage::disk('public')->delete($athlete->photo_path);
+                }
+
+                $athlete->delete();
+            });
+
+            return response()->json(null, 204);
+        } catch (\Throwable $e) {
+
+            Log::error('Erro ao excluir atleta', [
+                'error' => $e->getMessage(),
+                'athlete_id' => $athlete->id,
+            ]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Atleta não encontrado',
-            ], 404);
+                'message' => 'Erro interno no servidor',
+            ], 500);
         }
-
-        //Remove a foto do storage se existir
-        if ($athlete->photo_path) {
-            Storage::disk('public')->delete($athlete->photo_path);
-        }
-
-        $athlete->delete();
-        return response()->json([
-            'sucess' => true,
-            'message' => 'Atleta excluído com sucesso!',
-            'data' => null
-        ], 204);
     }
 }
