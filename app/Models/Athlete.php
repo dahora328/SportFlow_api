@@ -36,6 +36,13 @@ class Athlete extends Model
         'photo_path',
     ];
 
+    protected $hidden = [
+        'owner_id',
+        'photo_path',
+        'created_at',
+        'updated_at',
+    ];
+
 
     protected static function booted()
     {
