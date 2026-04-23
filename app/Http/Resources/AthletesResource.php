@@ -34,6 +34,8 @@ class AthletesResource extends JsonResource
             'father_name' => $this->father_name,
             'owner_id' => $this->owner_id,
             'path_photo' => $this->photo_path ? asset('storage/' . $this->photo_path) : null,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 }
