@@ -40,6 +40,10 @@ class Athlete extends Model
         'updated_at',
     ];
 
+    protected $appends = [
+        'photo_url',
+    ];
+
     protected static function booted()
     {
         // Ao CRIAR um registro (creating), injeta o ID do usuário logado
@@ -57,7 +61,7 @@ class Athlete extends Model
         });
     }
 
-    public function getFotoUrlAttribute()
+    public function getPhotoUrlAttribute()
     {
         return $this->photo_path ? Storage::url($this->photo_path) : null;
     }

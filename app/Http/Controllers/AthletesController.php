@@ -91,7 +91,7 @@ class AthletesController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Atleta criado com sucesso!',
-                'data' => $athlete,
+                'data' => new AthletesResource($athlete),
             ], 201);
         } catch (\Throwable $e) {
             Log::error($e);
@@ -113,7 +113,7 @@ class AthletesController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Atleta encontrado com sucesso!',
-            'data' => $athlete,
+            'data' => new AthletesResource($athlete),
         ], 200);
     }
 
@@ -169,7 +169,7 @@ class AthletesController extends Controller
                 'message' => empty($changedFields)
                     ? 'Nenhum dado foi alterado.'
                     : 'Atleta atualizado com sucesso!',
-                'data' => $updatedAthlete,
+                'data' => new AthletesResource($updatedAthlete),
                 'changed_fields' => $changedFields
             ], 200);
         } catch (\Throwable $e) {
