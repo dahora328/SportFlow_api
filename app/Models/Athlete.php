@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
@@ -13,7 +12,6 @@ class Athlete extends Model
 {
     use HasFactory;
     use SoftDeletes;
-
 
     protected $fillable = [
         'full_name',
@@ -36,6 +34,15 @@ class Athlete extends Model
         'photo_path',
     ];
 
+    protected $hidden = [
+        'owner_id',
+        'created_at',
+        'updated_at',
+    ];
+
+    protected $appends = [
+        'photo_url',
+    ];
 
     protected static function booted()
     {
@@ -54,7 +61,8 @@ class Athlete extends Model
         });
     }
 
-    public function getFotoUrlAttribute(){
+    public function getPhotoUrlAttribute()
+    {
         return $this->photo_path ? Storage::url($this->photo_path) : null;
     }
 

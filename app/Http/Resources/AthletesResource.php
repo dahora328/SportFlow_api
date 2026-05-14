@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class AthletesResource extends JsonResource
 {
@@ -14,7 +15,13 @@ class AthletesResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $photoUrl = null;
+        if ($this->photo_path) {
+            $photoUrl = $request->getSchemeAndHttpHost() . Storage::url($this->photo_path);
+        }
+
         return [
+            'id' => $this->id,
             'full_name' => $this->full_name,
             'birth_date' => $this->birth_date,
             'marital_status' => $this->marital_status,
@@ -32,6 +39,11 @@ class AthletesResource extends JsonResource
             'mother_name' => $this->mother_name,
             'father_name' => $this->father_name,
             'owner_id' => $this->owner_id,
+            'photo_path' => $this->photo_path,
+            'photo_url' => $photoUrl,
+            'path_photo' => $photoUrl,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 }

@@ -29,7 +29,7 @@ class UpdateAthletesRequest extends FormRequest
             'birth_date'    => 'nullable|date',
             'marital_status' => 'nullable|string|max:50',
             'gender'        => 'nullable|string|max:50',
-            'document' => 'required|unique:athletes,document,' . $athlete,
+            'document'      => 'unique:athletes,document,' . $athlete,
             'address'       => 'nullable|string|max:255',
             'number'        => 'nullable|string|max:10',
             'neighborhood'  => 'nullable|string|max:255',
