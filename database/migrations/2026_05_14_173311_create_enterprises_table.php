@@ -29,6 +29,9 @@ return new class extends Migration
             $table->string('zip_code', 10);
             $table->string('phone', 20);
             $table->string('email', 255)->unique();
+            $table->string('logo_path', 255)->nullable();
+            $table->boolean('active')->default(true);
+            $table->softDeletes();
             $table->timestamps();
         });
     }
