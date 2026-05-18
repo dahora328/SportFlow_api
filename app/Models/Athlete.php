@@ -54,12 +54,18 @@ class Athlete extends Model
         });
     }
 
-    public function getFotoUrlAttribute(){
+    public function getPhotoUrlAttribute()
+    {
         return $this->photo_path ? Storage::url($this->photo_path) : null;
     }
 
     public function owner()
     {
         return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    public function enterprise()
+    {
+        return $this->belongsTo(Enterprise::class);
     }
 }
