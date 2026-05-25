@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Enterprise;
@@ -12,7 +11,8 @@ class EnterpriseController extends Controller
      */
     public function index()
     {
-        //
+        $enterprises = Enterprise::all();
+        return response()->json($enterprises, 200);
     }
 
     /**

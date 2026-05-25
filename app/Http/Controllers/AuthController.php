@@ -1,13 +1,11 @@
 <?php
-
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Tymon\JWTAuth\Facades\JWTAuth;
-
 
 class AuthController extends Controller
 {
@@ -17,22 +15,23 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'name' => 'required',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:6'
+            'name'     => 'required',
+            'email'    => 'required|email|unique:users',
+            'password' => 'required|min:6',
         ]);
 
         $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
+            'name'          => $request->name,
+            'email'         => $request->email,
+            'password'      => Hash::make($request->password),
+            'enterprise_id' => env('DEFAULT_ENTERPRISE_ID', 1), // Futuramente arrumar para permitir várias empresas.
         ]);
 
         $token = JWTAuth::fromUser($user);
 
         return response()->json([
-            'user' => $user,
-            'token' => $token,
+            'user'       => $user,
+            'token'      => $token,
             'expires_in' => auth()->factory()->getTTL() * 60,
         ], 201);
     }
@@ -44,22 +43,22 @@ class AuthController extends Controller
     {
         $credentials = $request->only('email', 'password');
 
-        if (!$token = auth()->attempt($credentials)) {
+        if (! $token = auth()->attempt($credentials)) {
             return response()->json(['error' => 'Credenciais inválidas'], 401);
         }
 
         // Refresh Token
 
-        $user = auth()->user();
+        $user              = auth()->user();
         $plainRefreshToken = Str::random(60);
 
-        $user->refresh_token = hash('sha256', $plainRefreshToken);
+        $user->refresh_token            = hash('sha256', $plainRefreshToken);
         $user->refresh_token_expires_at = now()->addDays(7);
         $user->save();
 
         return response()->json([
-            'user_id' => $user->id,
-            'access_token' => $token,
+            'user_id'       => $user->id,
+            'access_token'  => $token,
             'refresh_token' => $plainRefreshToken, // ← token puro enviado ao front
         ]);
     }
@@ -71,14 +70,14 @@ class AuthController extends Controller
     {
         $refreshToken = $request->refresh_token;
 
-        if (!$refreshToken) {
+        if (! $refreshToken) {
             return response()->json(['error' => 'Refresh token requerido'], 400);
         }
 
         $hash = hash('sha256', $refreshToken);
         $user = User::where('refresh_token', $hash)->first();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json(['error' => 'Refresh token inválido'], 401);
         }
 
@@ -91,11 +90,10 @@ class AuthController extends Controller
 
         return response()->json([
             'access_token' => $newAccessToken,
-            'token_type' => 'bearer',
-            'expires_in' => auth()->factory()->getTTL() * 60
+            'token_type'   => 'bearer',
+            'expires_in'   => auth()->factory()->getTTL() * 60,
         ]);
     }
-
 
     /**
      * Logout
