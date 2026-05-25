@@ -23,6 +23,8 @@ class Enterprise extends Model
         'zip_code',
         'phone',
         'email',
+        'logo_path',
+        'active',
     ];
 
     public function users()
