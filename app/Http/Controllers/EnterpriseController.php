@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Enterprise;
@@ -28,15 +29,33 @@ class EnterpriseController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $data = $request->validated();
+        $user = auth('api')->user();
+
+        if (!$user) {
+            return response()->json(['error' => 'Usuário não autenticado'], 401);
+        }
+        $data['owner_id'] = $user->id;
+
+        $enterprise = Enterprise::create($data);
+        return response()->json([
+            'message' => 'Empresa criada com sucesso!',
+            'enterprise' => $enterprise
+        ], 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Enterprise $enterprise)
+    public function show(int $id)
     {
-        //
+        $enterprise = Enterprise::find($id);
+        if (!$enterprise) {
+            return response()->json([
+                'error' => 'Empresa não encontrada'
+            ], 404);
+        }
+        return response()->json($enterprise, 200);
     }
 
     /**
@@ -58,8 +77,17 @@ class EnterpriseController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Enterprise $enterprise)
+    public function destroy(int $id)
     {
-        //
+        $enterprise = Enterprise::find($id);
+        if (!$enterprise) {
+            return response()->json([
+                'error' => 'Empresa não encontrada'
+            ], 404);
+        }
+        $enterprise->delete();
+        return response()->json([
+            'message' => 'Empresa removida com sucesso!'
+        ]);
     }
 }
