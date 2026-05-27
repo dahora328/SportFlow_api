@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AthletesController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\EnterpriseController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -20,6 +21,7 @@ Route::middleware(['auth:api'])->group(function () {
 
     Route::get('/athletes/search', [AthletesController::class, 'searchByName'])->name('athletes.search');
     Route::apiResource('athletes', AthletesController::class)->names('athletes');
+    Route::apiResource('enterprises', EnterpriseController::class)->names('enterprises');
 });
 
 // Fallback 404 para rotas não encontradas na API
