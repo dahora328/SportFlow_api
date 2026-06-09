@@ -42,6 +42,13 @@ class AthletesController extends Controller
             return response()->json(['error' => 'Usuário não autenticado'], 401);
         }
         $data['owner_id'] = $user->id;
+
+        // TRATAR UPLOAD DE IMAGEM
+        if ($request->hasFile('photo_path')) {
+            $path = $request->file('photo_path')->store('athletes', 'public');
+            $data['photo_path'] = $path;
+        }
+
         $athlete = Athlete::create($data);
         // dd($athlete);
         return response()->json([
