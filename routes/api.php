@@ -14,7 +14,7 @@ Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/refresh', [AuthController::class, 'refresh'])->name('refresh');
 
 Route::middleware(['auth:api'])->group(function () {
-    Route::get('/user', [AuthController::class, 'getUser'])->name('user');
+    Route::get('/user', [AuthController::class, 'me'])->name('user');
     Route::put('/user', [AuthController::class, 'updateUser'])->name('user.update');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
