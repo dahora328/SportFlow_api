@@ -12,8 +12,16 @@ class EnterpriseController extends Controller
      */
     public function index()
     {
-        $enterprises = Enterprise::all();
-        return response()->json($enterprises, 200);
+        $user = auth('api')->user();
+        
+        // Pega a empresa vinculada ao usuário logado através do enterprise_id da tabela users
+        if ($user && $user->enterprise_id) {
+            $enterprises = Enterprise::where('id', $user->enterprise_id)->get();
+        } else {
+            $enterprises = collect([]); // Retorna array vazio se o usuário não tiver empresa
+        }
+        
+        return response()->json($enterprises);
     }
 
     /**
@@ -29,15 +37,23 @@ class EnterpriseController extends Controller
      */
     public function store(Request $request)
     {
-        $data = $request->validated();
+        // NOTA: Como você não tem o form request validado e a lógica exata de campos requeridos aqui, 
+        // e 'owner_id' não existe na tabela enterprise, vamos apenas usar os dados vindos no request.
+        // Se a validação for necessária, crie um FormRequest.
+        $data = $request->all();
         $user = auth('api')->user();
 
         if (!$user) {
             return response()->json(['error' => 'Usuário não autenticado'], 401);
         }
-        $data['owner_id'] = $user->id;
 
+        // Criar a empresa
         $enterprise = Enterprise::create($data);
+        
+        // Se desejar já vincular o usuário que criou a empresa recém-criada, você pode fazer:
+        // $user->enterprise_id = $enterprise->id;
+        // $user->save();
+
         return response()->json([
             'message' => 'Empresa criada com sucesso!',
             'enterprise' => $enterprise
