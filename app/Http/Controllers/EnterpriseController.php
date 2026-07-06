@@ -37,9 +37,6 @@ class EnterpriseController extends Controller
      */
     public function store(Request $request)
     {
-        // NOTA: Como você não tem o form request validado e a lógica exata de campos requeridos aqui, 
-        // e 'owner_id' não existe na tabela enterprise, vamos apenas usar os dados vindos no request.
-        // Se a validação for necessária, crie um FormRequest.
         $data = $request->all();
         $user = auth('api')->user();
 
@@ -47,12 +44,19 @@ class EnterpriseController extends Controller
             return response()->json(['error' => 'Usuário não autenticado'], 401);
         }
 
-        // Criar a empresa
+        if (!isset($data['owner_name'])) {
+            $data['owner_name'] = $user->name;
+        }
+
+        if ($request->hasFile('logo')) {
+            $path = $request->file('logo')->store('logos', 'public');
+            $data['logo_path'] = $path;
+        }
+
         $enterprise = Enterprise::create($data);
         
-        // Se desejar já vincular o usuário que criou a empresa recém-criada, você pode fazer:
-        // $user->enterprise_id = $enterprise->id;
-        // $user->save();
+        $user->enterprise_id = $enterprise->id;
+        $user->save();
 
         return response()->json([
             'message' => 'Empresa criada com sucesso!',
@@ -87,7 +91,19 @@ class EnterpriseController extends Controller
      */
     public function update(Request $request, Enterprise $enterprise)
     {
-        //
+        $data = $request->all();
+
+        if ($request->hasFile('logo')) {
+            $path = $request->file('logo')->store('logos', 'public');
+            $data['logo_path'] = $path;
+        }
+
+        $enterprise->update($data);
+
+        return response()->json([
+            'message' => 'Empresa atualizada com sucesso!',
+            'enterprise' => $enterprise
+        ], 200);
     }
 
     /**
