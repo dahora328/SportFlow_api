@@ -93,6 +93,12 @@ class EnterpriseController extends Controller
     {
         $data = $request->all();
 
+        \Illuminate\Support\Facades\Log::info('Update enterprise called', [
+            'has_logo' => $request->hasFile('logo'),
+            'logo_file' => $request->file('logo'),
+            'data' => $data
+        ]);
+
         if ($request->hasFile('logo')) {
             $path = $request->file('logo')->store('logos', 'public');
             $data['logo_path'] = $path;
