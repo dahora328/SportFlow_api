@@ -12,28 +12,52 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 class AuthController extends Controller
 {
     /**
-     * Registrar novo usuário
+     * Criar novo usuário — rota protegida (somente admins podem criar usuários)
+     *
+     * Regras:
+     * - Super Admin (is_admin=true, enterprise_id=null): pode criar qualquer usuário,
+     *   passando o enterprise_id desejado no body.
+     * - Gestor da empresa (is_admin=true, enterprise_id != null): pode criar usuários,
+     *   mas o enterprise_id é injetado automaticamente (o seu próprio).
+     * - Funcionário comum (is_admin=false): acesso negado.
      */
     public function register(Request $request)
     {
+        $logado = auth('api')->user();
+
+        // Somente admins (Super Admin ou Gestor) podem criar usuários
+        if (!$logado || !$logado->is_admin) {
+            return response()->json(['error' => 'Acesso negado. Apenas administradores podem criar usuários.'], 403);
+        }
+
         $request->validate([
-            'name' => 'required',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:6'
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|email|unique:users',
+            'password' => 'required|min:6',
         ]);
 
-        $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+        // Super Admin (sem empresa) passa enterprise_id no body
+        // Gestor da empresa usa o próprio enterprise_id automaticamente
+        $enterpriseId = ($logado->enterprise_id === null)
+            ? $request->enterprise_id
+            : $logado->enterprise_id;
 
-        $token = JWTAuth::fromUser($user);
+        // Super Admin pode definir is_admin; Gestor sempre cria funcionário comum
+        $isAdmin = ($logado->enterprise_id === null)
+            ? (bool) ($request->is_admin ?? false)
+            : false;
+
+        $novoUsuario = User::create([
+            'name'          => $request->name,
+            'email'         => $request->email,
+            'password'      => Hash::make($request->password),
+            'is_admin'      => $isAdmin,
+            'enterprise_id' => $enterpriseId,
+        ]);
 
         return response()->json([
-            'user' => $user,
-            'token' => $token,
-            'expires_in' => auth()->factory()->getTTL() * 60,
+            'message' => 'Usuário criado com sucesso!',
+            'user'    => $novoUsuario,
         ], 201);
     }
 
@@ -112,5 +136,27 @@ class AuthController extends Controller
     public function me()
     {
         return response()->json(auth()->user());
+    }
+
+    /**
+     * Atualizar dados do usuário logado
+     */
+    public function updateUser(Request $request)
+    {
+        $user = auth('api')->user();
+
+        if (!$user) {
+            return response()->json(['error' => 'Não autenticado'], 401);
+        }
+
+        $request->validate([
+            'name'  => 'sometimes|string|max:255',
+            'email' => 'sometimes|email|unique:users,email,' . $user->id,
+        ]);
+
+        $user->fill($request->only('name', 'email'));
+        $user->save();
+
+        return response()->json(['message' => 'Perfil atualizado com sucesso!', 'user' => $user]);
     }
 }
