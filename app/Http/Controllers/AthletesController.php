@@ -71,8 +71,30 @@ class AthletesController extends Controller
     {
         $this->authorize('create', Athlete::class);
 
+<<<<<<< HEAD
         try {
             $user = auth()->user();
+=======
+        if (!$user) {
+            return response()->json(['error' => 'Usuário não autenticado'], 401);
+        }
+        $data['owner_id'] = $user->id;
+        $data['enterprise_id'] = $user->enterprise_id;
+
+        // TRATAR UPLOAD DE IMAGEM
+        if ($request->hasFile('photo_path')) {
+            $path = $request->file('photo_path')->store('athletes', 'public');
+            $data['photo_path'] = $path;
+        }
+
+        $athlete = Athlete::create($data);
+        // dd($athlete);
+        return response()->json([
+            'message' => 'Atleta criado com sucesso!',
+            'athlete' => $athlete
+        ], 201);
+    }
+>>>>>>> create_organizations
 
             $athlete = DB::transaction(function () use ($request, $user) {
 

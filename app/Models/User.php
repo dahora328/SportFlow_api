@@ -64,4 +64,9 @@ class User extends Authenticatable implements JWTSubject
         'password' => 'hashed',
         'is_admin' => 'boolean',
     ];
+
+    public function enterprise()
+    {
+        return $this->belongsTo(Enterprise::class);
+    }
 }
