@@ -71,10 +71,9 @@ class AthletesController extends Controller
     {
         $this->authorize('create', Athlete::class);
 
-<<<<<<< HEAD
         try {
             $user = auth()->user();
-=======
+
         if (!$user) {
             return response()->json(['error' => 'Usuário não autenticado'], 401);
         }
@@ -93,8 +92,6 @@ class AthletesController extends Controller
             'message' => 'Atleta criado com sucesso!',
             'athlete' => $athlete
         ], 201);
-    }
->>>>>>> create_organizations
 
             $athlete = DB::transaction(function () use ($request, $user) {
 
