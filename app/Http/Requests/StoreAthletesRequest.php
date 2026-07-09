@@ -35,19 +35,17 @@ class StoreAthletesRequest extends FormRequest
             'city'            => 'required|string|max:100',
             'mobile_phone'    => 'required|string|max:20',
             'secondary_phone' => 'nullable|string|max:20',
-<<<<<<< HEAD
             'email' => 'nullable|email|max:255',
             'mother_name' => 'nullable|string|max:255',
             'father_name' => 'nullable|string|max:255',
             'photo_path'   => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'owner_id' => 'required|exists:users,id',
-=======
+
             'email'           => 'nullable|email|max:255',
             'mother_name'     => 'nullable|string|max:255',
             'father_name'     => 'nullable|string|max:255',
             'owner_id'        => 'required|exists:users,id',
             'photo_path'      => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
->>>>>>> create_organizations
         ];
     }
 
