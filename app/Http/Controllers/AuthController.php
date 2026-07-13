@@ -29,29 +29,16 @@ class AuthController extends Controller
         }
 
         $request->validate([
-<<<<<<< HEAD
             'name'     => 'required|string|max:255',
-=======
-            'name'     => 'required',
->>>>>>> create_organizations
             'email'    => 'required|email|unique:users',
             'password' => 'required|min:6',
         ]);
 
-<<<<<<< HEAD
         // Super Admin (sem empresa) passa enterprise_id no body
         // Gestor da empresa usa o próprio enterprise_id automaticamente
         $enterpriseId = ($logado->enterprise_id === null)
             ? $request->enterprise_id
             : $logado->enterprise_id;
-=======
-        $user = User::create([
-            'name'          => $request->name,
-            'email'         => $request->email,
-            'password'      => Hash::make($request->password),
-            'enterprise_id' => env('DEFAULT_ENTERPRISE_ID', 1), // Futuramente arrumar para permitir várias empresas.
-        ]);
->>>>>>> create_organizations
 
         // Super Admin pode definir is_admin; Gestor sempre cria funcionário comum
         $isAdmin = ($logado->enterprise_id === null)
@@ -67,14 +54,8 @@ class AuthController extends Controller
         ]);
 
         return response()->json([
-<<<<<<< HEAD
             'message' => 'Usuário criado com sucesso!',
             'user'    => $novoUsuario,
-=======
-            'user'       => $user,
-            'token'      => $token,
-            'expires_in' => auth()->factory()->getTTL() * 60,
->>>>>>> create_organizations
         ], 201);
     }
 

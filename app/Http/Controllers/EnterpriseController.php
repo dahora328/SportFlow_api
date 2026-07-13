@@ -8,19 +8,14 @@ use Illuminate\Http\Request;
 class EnterpriseController extends Controller
 {
     /**
-<<<<<<< HEAD
      * Listar empresas.
      *
      * - Super Admin (is_admin=true, enterprise_id=null): retorna todas as empresas.
      * - Gestor / Funcionário (enterprise_id != null): retorna apenas a empresa vinculada.
-=======
-     * Display a listing of the resource.
->>>>>>> create_organizations
      */
     public function index()
     {
         $user = auth('api')->user();
-<<<<<<< HEAD
 
         // Super Admin vê todas as empresas (necessário para o painel admin)
         if ($user && $user->is_admin && $user->enterprise_id === null) {
@@ -33,17 +28,6 @@ class EnterpriseController extends Controller
         }
 
         return response()->json([]);
-=======
-        
-        // Pega a empresa vinculada ao usuário logado através do enterprise_id da tabela users
-        if ($user && $user->enterprise_id) {
-            $enterprises = Enterprise::where('id', $user->enterprise_id)->get();
-        } else {
-            $enterprises = collect([]); // Retorna array vazio se o usuário não tiver empresa
-        }
-        
-        return response()->json($enterprises);
->>>>>>> create_organizations
     }
 
     /**
@@ -66,14 +50,11 @@ class EnterpriseController extends Controller
             return response()->json(['error' => 'Usuário não autenticado'], 401);
         }
 
-<<<<<<< HEAD
         // Somente o Super Admin pode criar empresas
         if (!$user->is_admin || $user->enterprise_id !== null) {
             return response()->json(['error' => 'Acesso negado. Apenas o Super Admin pode cadastrar empresas.'], 403);
         }
 
-=======
->>>>>>> create_organizations
         if (!isset($data['owner_name'])) {
             $data['owner_name'] = $user->name;
         }
@@ -84,18 +65,8 @@ class EnterpriseController extends Controller
         }
 
         $enterprise = Enterprise::create($data);
-<<<<<<< HEAD
-
         return response()->json([
             'message'    => 'Empresa criada com sucesso!',
-=======
-        
-        $user->enterprise_id = $enterprise->id;
-        $user->save();
-
-        return response()->json([
-            'message' => 'Empresa criada com sucesso!',
->>>>>>> create_organizations
             'enterprise' => $enterprise
         ], 201);
     }
@@ -143,11 +114,7 @@ class EnterpriseController extends Controller
         $enterprise->update($data);
 
         return response()->json([
-<<<<<<< HEAD
             'message'    => 'Empresa atualizada com sucesso!',
-=======
-            'message' => 'Empresa atualizada com sucesso!',
->>>>>>> create_organizations
             'enterprise' => $enterprise
         ], 200);
     }
