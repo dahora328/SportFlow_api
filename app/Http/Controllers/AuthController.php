@@ -111,10 +111,17 @@ class AuthController extends Controller
         // Gera novo access token
         $newAccessToken = auth()->login($user);
 
+        // Gera novo refresh token (Rotação)
+        $newPlainRefreshToken = Str::random(60);
+        $user->refresh_token            = hash('sha256', $newPlainRefreshToken);
+        $user->refresh_token_expires_at = now()->addDays(7);
+        $user->save();
+
         return response()->json([
-            'access_token' => $newAccessToken,
-            'token_type'   => 'bearer',
-            'expires_in'   => auth()->factory()->getTTL() * 60,
+            'access_token'  => $newAccessToken,
+            'refresh_token' => $newPlainRefreshToken,
+            'token_type'    => 'bearer',
+            'expires_in'    => auth()->factory()->getTTL() * 60,
         ]);
     }
 
@@ -123,6 +130,14 @@ class AuthController extends Controller
      */
     public function logout()
     {
+        $user = auth()->user();
+        
+        if ($user) {
+            $user->refresh_token = null;
+            $user->refresh_token_expires_at = null;
+            $user->save();
+        }
+
         auth()->logout();
         return response()->json(['message' => 'Logout realizado com sucesso']);
     }
