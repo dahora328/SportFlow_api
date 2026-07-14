@@ -1,0 +1,2 @@
+- Adicionar campo no cadastro Posição do jogador.
+- Adicionar um campo OBS para fins de relatório e histórico.
