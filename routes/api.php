@@ -22,7 +22,6 @@ Route::middleware(['auth:api'])->group(function () {
     // /register agora é protegido: somente admins (Super Admin ou Gestor) criam usuários
     Route::post('/register', [AuthController::class, 'register'])->name('register');
 
-    Route::get('/athletes/search', [AthletesController::class, 'searchByName'])->name('athletes.search');
     Route::apiResource('athletes', AthletesController::class)->names('athletes');
     Route::apiResource('enterprises', EnterpriseController::class)->names('enterprises');
 });
