@@ -29,6 +29,7 @@ class UpdateAthletesRequest extends FormRequest
             'birth_date'    => 'nullable|date',
             'marital_status' => 'nullable|string|max:50',
             'gender'        => 'nullable|string|max:50',
+            'position'      => 'nullable|string|max:100',
             'document'      => 'unique:athletes,document,' . $athlete,
             'address'       => 'nullable|string|max:255',
             'number'        => 'nullable|string|max:10',
@@ -43,6 +44,7 @@ class UpdateAthletesRequest extends FormRequest
             'father_name'   => 'nullable|string|max:255',
             'photo_path'   => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'owner_id'      => 'nullable|exists:users,id',
+            'observations'  => 'nullable|string',
         ];
     }
 

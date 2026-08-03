@@ -33,6 +33,8 @@ class Athlete extends Model
         'owner_id',
         'enterprise_id',
         'photo_path',
+        'position',
+        'observations',
     ];
 
     protected $hidden = [

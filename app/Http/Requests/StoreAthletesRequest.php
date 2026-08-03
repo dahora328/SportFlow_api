@@ -26,6 +26,7 @@ class StoreAthletesRequest extends FormRequest
             'birth_date'      => 'required|date',
             'marital_status'  => 'required|string|max:50',
             'gender'          => 'required|string|max:50',
+            'position'        => 'nullable|string|max:100',
             'document'        => 'required|string|max:18',
             'address'         => 'required|string|max:255',
             'number'          => 'required|string|max:10',
@@ -46,6 +47,7 @@ class StoreAthletesRequest extends FormRequest
             'father_name'     => 'nullable|string|max:255',
             'owner_id'        => 'required|exists:users,id',
             'photo_path'      => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'observations'    => 'nullable|string',
         ];
     }
 

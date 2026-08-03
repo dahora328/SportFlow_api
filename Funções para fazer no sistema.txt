@@ -1,2 +1,14 @@
-- Adicionar campo no cadastro Posição do jogador.
-- Adicionar um campo OBS para fins de relatório e histórico.
+- Adicionar campo no cadastro Posição do jogador. OK
+- Adicionar um campo OBS para fins de relatório e histórico.  OK
+
+
+-----------------------------------------------
+03/08/2026
+- Colocar cadastro de profissão. Ex: Jogador de futebol, Treinador de futebol, 
+Fisioterapeuta, massagista, etc...
+- Colocar posição para relacionar com a profissão. Ex: se for jogador paracer as posição, goleiro, defensdor, meia ou atacante.
+- Se for treinador aparacer somente treinador.
+- Se for massagista aparecer somente massagista.
+
+------------------------------------------------------------------------------------
+
