@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Models\Athlete;
 use Illuminate\Foundation\Http\FormRequest;
+use App\Rules\CpfCnpjRule;
 use Illuminate\Validation\Rule;
 
 class UpdateAthletesRequest extends FormRequest
@@ -30,7 +31,7 @@ class UpdateAthletesRequest extends FormRequest
             'marital_status' => 'nullable|string|max:50',
             'gender'        => 'nullable|string|max:50',
             'position'      => 'nullable|string|max:100',
-            'document'      => 'unique:athletes,document,' . $athlete,
+            'document'      => ['nullable', 'string', 'max:18', new CpfCnpjRule(), 'unique:athletes,document,' . $athlete],
             'address'       => 'nullable|string|max:255',
             'number'        => 'nullable|string|max:10',
             'neighborhood'  => 'nullable|string|max:255',
@@ -43,7 +44,6 @@ class UpdateAthletesRequest extends FormRequest
             'mother_name'   => 'nullable|string|max:255',
             'father_name'   => 'nullable|string|max:255',
             'photo_path'   => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'owner_id'      => 'nullable|exists:users,id',
             'observations'  => 'nullable|string',
         ];
     }

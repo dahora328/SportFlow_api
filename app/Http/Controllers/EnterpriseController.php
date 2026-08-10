@@ -13,18 +13,20 @@ class EnterpriseController extends Controller
      * - Super Admin (is_admin=true, enterprise_id=null): retorna todas as empresas.
      * - Gestor / Funcionário (enterprise_id != null): retorna apenas a empresa vinculada.
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = auth('api')->user();
 
         // Super Admin vê todas as empresas (necessário para o painel admin)
         if ($user && $user->is_admin && $user->enterprise_id === null) {
-            return response()->json(Enterprise::orderBy('name')->get());
+            $query = Enterprise::orderBy('name');
+            return response()->json($request->has('all') ? $query->get() : $query->paginate(15));
         }
 
         // Gestor ou Funcionário vê apenas a própria empresa
         if ($user && $user->enterprise_id) {
-            return response()->json(Enterprise::where('id', $user->enterprise_id)->get());
+            $query = Enterprise::where('id', $user->enterprise_id);
+            return response()->json($request->has('all') ? $query->get() : $query->paginate(15));
         }
 
         return response()->json([]);
@@ -41,9 +43,9 @@ class EnterpriseController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(\App\Http\Requests\StoreEnterpriseRequest $request)
     {
-        $data = $request->all();
+        $data = $request->validated();
         $user = auth('api')->user();
 
         if (!$user) {
@@ -76,11 +78,23 @@ class EnterpriseController extends Controller
      */
     public function show(int $id)
     {
+        $user = auth('api')->user();
+        if (!$user) {
+            return response()->json(['error' => 'Usuário não autenticado'], 401);
+        }
+        
         $enterprise = Enterprise::find($id);
         if (!$enterprise) {
             return response()->json([
                 'error' => 'Empresa não encontrada'
             ], 404);
+        }
+
+        if (!$user->is_admin && $user->enterprise_id !== $enterprise->id) {
+            return response()->json(['error' => 'Acesso negado.'], 403);
+        }
+        if ($user->is_admin && $user->enterprise_id !== null && $user->enterprise_id !== $enterprise->id) {
+            return response()->json(['error' => 'Acesso negado.'], 403);
         }
         return response()->json($enterprise, 200);
     }
@@ -98,12 +112,38 @@ class EnterpriseController extends Controller
      */
     public function update(Request $request, Enterprise $enterprise)
     {
-        $data = $request->all();
+        $user = auth('api')->user();
+        if (!$user) {
+            return response()->json(['error' => 'Usuário não autenticado'], 401);
+        }
 
-        \Illuminate\Support\Facades\Log::info('Update enterprise called', [
-            'has_logo' => $request->hasFile('logo'),
-            'logo_file' => $request->file('logo'),
-            'data' => $data
+        // Verifica permissão (super admin ou gestor da própria empresa)
+        if (!$user->is_admin && $user->enterprise_id !== $enterprise->id) {
+            return response()->json(['error' => 'Acesso negado.'], 403);
+        }
+        if ($user->is_admin && $user->enterprise_id !== null && $user->enterprise_id !== $enterprise->id) {
+            return response()->json(['error' => 'Acesso negado.'], 403);
+        }
+
+        $data = $request->validate([
+            'name' => 'sometimes|string|max:255',
+            'social_reason' =>  'sometimes|string|max:255',
+            'fantasy_name' => 'sometimes|string|max:255',
+            'owner_name' => 'sometimes|string|max:255',
+            'document' => 'sometimes|string|max:255',
+            'foundation_date' => 'sometimes|date',
+            'IE' => 'sometimes|string|max:255',
+            'address' => 'sometimes|string|max:255',
+            'number' => 'sometimes|string|max:255',
+            'complement' => 'nullable|string|max:255',
+            'neighborhood' => 'sometimes|string|max:255',
+            'city' => 'sometimes|string|max:255',
+            'state' => 'sometimes|string|max:255',
+            'zip_code' => 'sometimes|string|max:255',
+            'phone' => 'sometimes|string|max:255',
+            'email' => 'sometimes|email|unique:enterprises,email,' . $enterprise->id,
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'active' => 'sometimes|boolean',
         ]);
 
         if ($request->hasFile('logo')) {
@@ -124,11 +164,23 @@ class EnterpriseController extends Controller
      */
     public function destroy(int $id)
     {
+        $user = auth('api')->user();
+        if (!$user) {
+            return response()->json(['error' => 'Usuário não autenticado'], 401);
+        }
+        
         $enterprise = Enterprise::find($id);
         if (!$enterprise) {
             return response()->json([
                 'error' => 'Empresa não encontrada'
             ], 404);
+        }
+
+        if (!$user->is_admin && $user->enterprise_id !== $enterprise->id) {
+            return response()->json(['error' => 'Acesso negado.'], 403);
+        }
+        if ($user->is_admin && $user->enterprise_id !== null && $user->enterprise_id !== $enterprise->id) {
+            return response()->json(['error' => 'Acesso negado.'], 403);
         }
         $enterprise->delete();
         return response()->json([

@@ -3,6 +3,8 @@ namespace App\Http\Requests;
 
 use App\Models\Athlete;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use App\Rules\CpfCnpjRule;
 
 class StoreAthletesRequest extends FormRequest
 {
@@ -27,7 +29,7 @@ class StoreAthletesRequest extends FormRequest
             'marital_status'  => 'required|string|max:50',
             'gender'          => 'required|string|max:50',
             'position'        => 'nullable|string|max:100',
-            'document'        => 'required|string|max:18',
+            'document'        => ['required', 'string', 'max:18', new CpfCnpjRule()],
             'address'         => 'required|string|max:255',
             'number'          => 'required|string|max:10',
             'neighborhood'    => 'required|string|max:100',
@@ -36,16 +38,17 @@ class StoreAthletesRequest extends FormRequest
             'city'            => 'required|string|max:100',
             'mobile_phone'    => 'required|string|max:20',
             'secondary_phone' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:255',
-            'mother_name' => 'nullable|string|max:255',
-            'father_name' => 'nullable|string|max:255',
-            'photo_path'   => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'owner_id' => 'required|exists:users,id',
 
-            'email'           => 'nullable|email|max:255',
+            'email'           => [
+                'nullable',
+                'email',
+                'max:255',
+                Rule::unique('athletes')->where(function ($query) {
+                    return $query->where('enterprise_id', $this->user()->enterprise_id);
+                })
+            ],
             'mother_name'     => 'nullable|string|max:255',
             'father_name'     => 'nullable|string|max:255',
-            'owner_id'        => 'required|exists:users,id',
             'photo_path'      => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'observations'    => 'nullable|string',
         ];
@@ -67,7 +70,6 @@ class StoreAthletesRequest extends FormRequest
             'state.required'          => 'O campo estado é obrigatório.',
             'city.required'           => 'O campo cidade é obrigatório.',
             'mobile_phone.required'   => 'O campo celular é obrigatório.',
-            'owner_id.required'       => 'O campo proprietário é obrigatório.',
 
             // Validações de tipo
             'full_name.string'        => 'O nome completo deve ser um texto.',
@@ -106,8 +108,6 @@ class StoreAthletesRequest extends FormRequest
             'mother_name.max'         => 'O nome da mãe não pode ter mais de 255 caracteres.',
             'father_name.max'         => 'O nome do pai não pode ter mais de 255 caracteres.',
 
-            // Validação de existência
-            'owner_id.exists'         => 'O proprietário selecionado é inválido.',
         ];
     }
 }

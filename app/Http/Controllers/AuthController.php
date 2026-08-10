@@ -19,7 +19,7 @@ class AuthController extends Controller
      *   mas o enterprise_id é injetado automaticamente (o seu próprio).
      * - Funcionário comum (is_admin=false): acesso negado.
      */
-    public function register(Request $request)
+    public function register(\App\Http\Requests\RegisterRequest $request)
     {
         $logado = auth('api')->user();
 
@@ -27,12 +27,6 @@ class AuthController extends Controller
         if (!$logado || !$logado->is_admin) {
             return response()->json(['error' => 'Acesso negado. Apenas administradores podem criar usuários.'], 403);
         }
-
-        $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users',
-            'password' => 'required|min:6',
-        ]);
 
         // Super Admin (sem empresa) passa enterprise_id no body
         // Gestor da empresa usa o próprio enterprise_id automaticamente
@@ -147,7 +141,7 @@ class AuthController extends Controller
      */
     public function me()
     {
-        return response()->json(auth()->user());
+        return response()->json(new \App\Http\Resources\UserResource(auth()->user()));
     }
 
     /**

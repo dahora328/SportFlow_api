@@ -40,8 +40,6 @@ class User extends Authenticatable implements JWTSubject
         'password',
         'is_admin',
         'enterprise_id',
-        'refresh_token',
-        'refresh_token_expires_at',
     ];
 
     /**
@@ -52,6 +50,8 @@ class User extends Authenticatable implements JWTSubject
     protected $hidden = [
         'password',
         'remember_token',
+        'refresh_token',
+        'refresh_token_expires_at',
     ];
 
     /**

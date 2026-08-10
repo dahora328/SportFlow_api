@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use App\Rules\CpfCnpjRule;
 
 class StoreEnterpriseRequest extends FormRequest
 {
@@ -12,7 +13,7 @@ class StoreEnterpriseRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -27,7 +28,7 @@ class StoreEnterpriseRequest extends FormRequest
             'social_reason' =>  'required|string|max:255',
             'fantasy_name' => 'required|string|max:255',
             'owner_name' => 'required|string|max:255',
-            'document' => 'required|string|max:255',
+            'document' => ['required', 'string', 'max:255', new CpfCnpjRule()],
             'foundation_date' => 'required|date',
             'IE' => 'required|string|max:255',
             'address' => 'required|string|max:255',

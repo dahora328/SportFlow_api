@@ -10,8 +10,10 @@ Route::get('/', function () {
 });
 
 // Rotas públicas (sem autenticação)
-Route::post('/login', [AuthController::class, 'login'])->name('login');
-Route::post('/refresh', [AuthController::class, 'refresh'])->name('refresh'); 
+Route::middleware('throttle:5,1')->group(function () {
+    Route::post('/login', [AuthController::class, 'login'])->name('login');
+    Route::post('/refresh', [AuthController::class, 'refresh'])->name('refresh');
+}); 
 
 // Rotas protegidas (requer token JWT)
 Route::middleware(['auth:api'])->group(function () {
