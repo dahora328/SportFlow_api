@@ -27,10 +27,10 @@ class StoreEnterpriseRequest extends FormRequest
             'name' => 'required|string|max:255',
             'social_reason' =>  'required|string|max:255',
             'fantasy_name' => 'required|string|max:255',
-            'owner_name' => 'required|string|max:255',
+            'owner_name' => 'nullable|string|max:255',
             'document' => ['required', 'string', 'max:255', new CpfCnpjRule()],
             'foundation_date' => 'required|date',
-            'IE' => 'required|string|max:255',
+            'IE' => 'nullable|string|max:255',
             'address' => 'required|string|max:255',
             'number' => 'required|string|max:255',
             'complement' => 'nullable|string|max:255',
@@ -41,7 +41,7 @@ class StoreEnterpriseRequest extends FormRequest
             'phone' => 'required|string|max:255',
             'email' => 'required|email|unique:enterprises,email',
             'logo_path' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'active' => 'required|boolean',
+            'active' => 'nullable|boolean',
         ];
     }
 
