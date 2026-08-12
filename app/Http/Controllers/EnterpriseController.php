@@ -132,7 +132,7 @@ class EnterpriseController extends Controller
             'owner_name' => 'sometimes|string|max:255',
             'document' => 'sometimes|string|max:255',
             'foundation_date' => 'sometimes|date',
-            'IE' => 'sometimes|string|max:255',
+            'IE' => 'nullable|string|max:255',
             'address' => 'sometimes|string|max:255',
             'number' => 'sometimes|string|max:255',
             'complement' => 'nullable|string|max:255',

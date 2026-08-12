@@ -30,7 +30,7 @@ class StoreEnterpriseRequest extends FormRequest
             'owner_name' => 'required|string|max:255',
             'document' => ['required', 'string', 'max:255', new CpfCnpjRule()],
             'foundation_date' => 'required|date',
-            'IE' => 'required|string|max:255',
+            'IE' => 'nullable|string|max:255',
             'address' => 'required|string|max:255',
             'number' => 'required|string|max:255',
             'complement' => 'nullable|string|max:255',
