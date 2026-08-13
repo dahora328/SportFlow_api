@@ -26,6 +26,7 @@ Route::middleware(['auth:api'])->group(function () {
 
     Route::apiResource('athletes', AthletesController::class)->names('athletes');
     Route::apiResource('enterprises', EnterpriseController::class)->names('enterprises');
+    Route::apiResource('users', \App\Http\Controllers\UsersController::class)->names('users');
 });
 
 // Fallback 404 para rotas não encontradas na API
