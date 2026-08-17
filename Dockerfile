@@ -1,6 +1,6 @@
 # =============================================================================
 # SportFlow API - Dockerfile
-# Laravel 12 | PHP 8.2-FPM | PostgreSQL
+# Laravel 12 | PHP 8.2-Apache | PostgreSQL
 # =============================================================================
 
 # ---------------------------------------------------------------------------
@@ -28,9 +28,9 @@ COPY . .
 RUN composer dump-autoload --optimize --no-dev
 
 # ---------------------------------------------------------------------------
-# Stage 2: Imagem final - PHP 8.2-FPM
+# Stage 2: Imagem final - PHP 8.2-Apache
 # ---------------------------------------------------------------------------
-FROM php:8.2-fpm
+FROM php:8.2-apache
 
 LABEL maintainer="SportFlow Team"
 LABEL description="SportFlow API - Laravel 12 Backend"
@@ -49,12 +49,6 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Instala extensões PHP necessárias para o projeto
-# pdo_pgsql  -> conexão com PostgreSQL
-# mbstring   -> manipulação de strings multibyte
-# exif       -> leitura de metadados de imagens
-# pcntl      -> controle de processos (queues/horizon)
-# bcmath     -> operações matemáticas de precisão
-# gd         -> manipulação de imagens
 RUN docker-php-ext-install \
     pdo_pgsql \
     mbstring \
@@ -62,6 +56,14 @@ RUN docker-php-ext-install \
     pcntl \
     bcmath \
     gd
+
+# Ativa o mod_rewrite do Apache (essencial para as rotas do Laravel)
+RUN a2enmod rewrite
+
+# Configura o diretório raiz do Apache para a pasta /public do Laravel
+ENV APACHE_DOCUMENT_ROOT /var/www/public
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
+RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
 # Define o diretório de trabalho
 WORKDIR /var/www
@@ -79,7 +81,7 @@ RUN mkdir -p \
     storage/logs \
     bootstrap/cache
 
-# Ajusta permissões para o usuário do PHP-FPM (www-data)
+# Ajusta permissões para o usuário do Apache (www-data)
 RUN chown -R www-data:www-data /var/www \
     && chmod -R 775 storage bootstrap/cache
 
@@ -87,11 +89,11 @@ RUN chown -R www-data:www-data /var/www \
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# Expõe a porta padrão do PHP-FPM
-EXPOSE 9000
+# Expõe a porta 80 (padrão do tráfego web HTTP)
+EXPOSE 80
 
-# Entrypoint: executa tarefas de inicialização antes de subir o PHP-FPM
+# Entrypoint: executa tarefas de inicialização (migrations, cache, etc)
 ENTRYPOINT ["docker-entrypoint.sh"]
 
-# Comando padrão: inicia o PHP-FPM
-CMD ["php-fpm"]
+# Comando padrão: inicia o Apache em primeiro plano
+CMD ["apache2-foreground"]
