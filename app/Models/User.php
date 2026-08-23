@@ -39,8 +39,7 @@ class User extends Authenticatable implements JWTSubject
         'email',
         'password',
         'is_admin',
-        'refresh_token',
-        'refresh_token_expires_at',
+        'enterprise_id',
     ];
 
     /**
@@ -51,6 +50,8 @@ class User extends Authenticatable implements JWTSubject
     protected $hidden = [
         'password',
         'remember_token',
+        'refresh_token',
+        'refresh_token_expires_at',
     ];
 
     /**
@@ -63,4 +64,9 @@ class User extends Authenticatable implements JWTSubject
         'password' => 'hashed',
         'is_admin' => 'boolean',
     ];
+
+    public function enterprise()
+    {
+        return $this->belongsTo(Enterprise::class);
+    }
 }

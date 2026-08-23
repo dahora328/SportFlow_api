@@ -26,7 +26,7 @@ class AthletesController extends Controller
 
         if ($request->filled('search')) {
             $search = substr($request->search, 0, 50); // limita input
-            $query->where('full_name', 'like', "%{$search}%");
+            $query->where('full_name', 'ilike', "%{$search}%");
         }
 
         // Ordenação segura (whitelist)
@@ -73,6 +73,10 @@ class AthletesController extends Controller
 
         try {
             $user = auth()->user();
+
+        if (!$user) {
+            return response()->json(['error' => 'Usuário não autenticado'], 401);
+        }
 
             $athlete = DB::transaction(function () use ($request, $user) {
 

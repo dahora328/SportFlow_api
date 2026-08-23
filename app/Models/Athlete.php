@@ -31,7 +31,10 @@ class Athlete extends Model
         'mother_name',
         'father_name',
         'owner_id',
+        'enterprise_id',
         'photo_path',
+        'position',
+        'observations',
     ];
 
     protected $hidden = [
@@ -46,17 +49,25 @@ class Athlete extends Model
 
     protected static function booted()
     {
-        // Ao CRIAR um registro (creating), injeta o ID do usuário logado
+        // Ao CRIAR um registro (creating), injeta o ID do usuário e a empresa
         static::creating(function ($athlete) {
             if (Auth::check()) {
-                $athlete->owner_id = Auth::id();
+                $user = Auth::user();
+                $athlete->owner_id = $user->id;
+                $athlete->enterprise_id = $user->enterprise_id;
             }
         });
 
-        // Opcional: Escopo global para que o usuário só veja SEUS atletas
-        static::addGlobalScope('owner', function (Builder $builder) {
+        // Escopo global para que o usuário só veja os atletas da sua empresa
+        static::addGlobalScope('enterprise', function (Builder $builder) {
             if (Auth::check()) {
-                $builder->where('owner_id', Auth::id());
+                $user = Auth::user();
+                if ($user->enterprise_id) {
+                    $builder->where('enterprise_id', $user->enterprise_id);
+                } else {
+                    // Se o usuário não tem empresa, não deve ver nada
+                    $builder->whereRaw('1 = 0');
+                }
             }
         });
     }
@@ -69,5 +80,10 @@ class Athlete extends Model
     public function owner()
     {
         return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    public function enterprise()
+    {
+        return $this->belongsTo(Enterprise::class);
     }
 }
