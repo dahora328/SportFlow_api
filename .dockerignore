@@ -31,7 +31,6 @@ CHANGELOG.md
 # Docker (evita recursão)
 Dockerfile
 docker-compose.yml
-docker-entrypoint.sh
 
 # Scripts de desenvolvimento
 scripts
