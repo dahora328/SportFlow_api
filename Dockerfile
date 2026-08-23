@@ -97,4 +97,4 @@ EXPOSE 80
 ENTRYPOINT ["docker-entrypoint.sh"]
 
 # Comando padrão: inicia o Apache em primeiro plano
-CMD ["apache2-foreground"]
+CMD ["apache2-foreground"]  
