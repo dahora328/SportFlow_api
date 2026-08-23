@@ -16,8 +16,18 @@ class AthleteTest extends TestCase
     {
         $enterpriseId = \Illuminate\Support\Facades\DB::table('enterprises')->insertGetId([
             'name' => 'Teste',
+            'fantasy_name' => 'Teste Fantasia',
+            'owner_name' => 'Dono Teste',
             'social_reason' => 'Teste LTDA',
             'document' => '00000000000191',
+            'foundation_date' => '2000-01-01',
+            'address' => 'Rua Teste',
+            'number' => '123',
+            'neighborhood' => 'Bairro Teste',
+            'city' => 'Cidade Teste',
+            'state' => 'SP',
+            'zip_code' => '12345678',
+            'phone' => '11999999999',
             'email' => 'teste@teste.com',
             'active' => true,
         ]);
@@ -32,7 +42,7 @@ class AthleteTest extends TestCase
             'birth_date' => '2000-01-01',
             'marital_status' => 'Solteiro',
             'gender' => 'Masculino',
-            'document' => '05971485078', // Valid CPF
+            'document' => '71517684005', // Valid CPF
             'address' => 'Rua Teste',
             'number' => '123',
             'neighborhood' => 'Bairro Teste',
