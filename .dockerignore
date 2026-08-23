@@ -1,0 +1,48 @@
+# Git
+.git
+.gitignore
+.gitattributes
+.github
+
+# IDE e editor
+.vscode
+.idea
+.editorconfig
+
+# Dependências (serão instaladas no build)
+vendor
+node_modules
+
+# Arquivos de ambiente (passados via docker-compose/env)
+.env
+.env.example
+.env.testing
+
+# Testes e CI
+tests
+phpunit.xml
+.phpunit.result.cache
+.styleci.yml
+
+# Documentação
+README.md
+CHANGELOG.md
+
+# Docker (evita recursão)
+Dockerfile
+docker-compose.yml
+docker-entrypoint.sh
+
+# Scripts de desenvolvimento
+scripts
+
+# Logs e cache local
+storage/logs/*
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*
+
+# Arquivos de desenvolvimento
+.prettierrc.json
+vite.config.js
+package.json
