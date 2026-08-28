@@ -12,10 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         // Verifica se o email já existe para não dar erro caso a migration rode duas vezes
-        if (!User::where('email', 'rdrgdahora@gmail.com')->exists()) {
+        if (!User::where('email', 'rodrigoliveira328@hotmai.com')->exists()) {
             User::create([
                 'name' => 'Rodrigo da Hora Oliveira',
-                'email' => 'rdrgdahora@gmail.com',
+                'email' => 'rodrigoliveira328@hotmai.com',
                 'password' => Hash::make('Dahora@10'), // Coloque uma senha forte aqui
                 'is_admin' => true,
             ]);
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        User::where('email', 'rdrgdahora@gmail.com')->delete();
+        User::where('email', 'rodrigoliveira328@hotmai.com')->delete();
     }
 };
