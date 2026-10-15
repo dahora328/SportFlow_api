@@ -23,6 +23,9 @@ jobs:
       - name: Instalar dependências
         run: composer install
 
+      - name: Auditar dependências (vulnerabilidades conhecidas)
+        run: composer audit
+
       - name: Gerar chave APP
         run: php artisan key:generate
 

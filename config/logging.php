@@ -65,6 +65,16 @@ return [
             'replace_placeholders' => true,
         ],
 
+        // Trilha de auditoria de segurança: autenticação, mudanças de
+        // permissão e deleções. Retenção mínima de 90 dias.
+        'security' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/security.log'),
+            'level' => 'info',
+            'days' => env('LOG_SECURITY_DAYS', 90),
+            'replace_placeholders' => true,
+        ],
+
         'daily' => [
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),

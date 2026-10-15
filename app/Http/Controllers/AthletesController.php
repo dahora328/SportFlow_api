@@ -22,38 +22,49 @@ class AthletesController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Athlete::query();
+        try {
+            $query = Athlete::query();
 
-        if ($request->filled('search')) {
-            $search = substr($request->search, 0, 50); // limita input
-            $query->where('full_name', 'ilike', "%{$search}%");
+            if ($request->filled('search')) {
+                $search = mb_substr((string) $request->search, 0, 50); // limita input
+                // LOWER(...) LIKE funciona em qualquer driver (pgsql, mysql, sqlite),
+                // ao contrário do ILIKE que é exclusivo do PostgreSQL.
+                $query->whereRaw('LOWER(full_name) LIKE ?', ['%' . mb_strtolower($search) . '%']);
+            }
+
+            // Ordenação segura (whitelist)
+            $allowedSorts = ['full_name', 'created_at'];
+
+            $sort = $request->filled('sort') && in_array($request->sort, $allowedSorts) ? $request->sort : 'created_at';
+            $direction = $request->filled('direction') && in_array(strtolower($request->direction), ['asc', 'desc']) ? strtolower($request->direction) : 'desc';
+
+            if (!in_array($sort, $allowedSorts)) {
+                $sort = 'created_at';
+            }
+
+            if (!in_array($direction, ['asc', 'desc'])) {
+                $direction = 'desc';
+            }
+
+            $query->orderBy($sort, $direction);
+
+            $perPage = min($request->filled('per_page') ? (int) $request->per_page : 15, 100);
+
+            $athletes = $query->paginate($perPage);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Atletas listados com sucesso',
+                'data' => AthletesResource::collection($athletes)
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Erro ao listar/buscar atletas', ['error' => $e->getMessage()]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro interno no servidor',
+            ], 500);
         }
-
-        // Ordenação segura (whitelist)
-        $allowedSorts = ['full_name', 'created_at'];
-
-        $sort = $request->filled('sort') && in_array($request->sort, $allowedSorts) ? $request->sort : 'created_at';
-        $direction = $request->filled('direction') && in_array(strtolower($request->direction), ['asc', 'desc']) ? strtolower($request->direction) : 'desc';
-
-        if (!in_array($sort, $allowedSorts)) {
-            $sort = 'created_at';
-        }
-
-        if (!in_array($direction, ['asc', 'desc'])) {
-            $direction = 'desc';
-        }
-
-        $query->orderBy($sort, $direction);
-
-        $perPage = min($request->filled('per_page') ? (int) $request->per_page : 15, 100);
-
-        $athletes = $query->paginate($perPage);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Atletas listados com sucesso',
-            'data' => AthletesResource::collection($athletes)
-        ]);
     }
 
     /**
@@ -207,6 +218,12 @@ class AthletesController extends Controller
 
                 $athlete->delete();
             });
+
+            Log::channel('security')->info('athlete.deleted', [
+                'actor_id'   => auth()->id(),
+                'athlete_id' => $athlete->id,
+                'ip'         => request()->ip(),
+            ]);
 
             return response()->json(null, 204);
         } catch (\Throwable $e) {

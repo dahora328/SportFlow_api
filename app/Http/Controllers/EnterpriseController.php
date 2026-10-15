@@ -142,7 +142,7 @@ class EnterpriseController extends Controller
             'zip_code' => 'sometimes|string|max:255',
             'phone' => 'sometimes|string|max:255',
             'email' => 'sometimes|email|unique:enterprises,email,' . $enterprise->id,
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'active' => 'sometimes|boolean',
         ]);
 
@@ -183,6 +183,13 @@ class EnterpriseController extends Controller
             return response()->json(['error' => 'Acesso negado.'], 403);
         }
         $enterprise->delete();
+
+        \Illuminate\Support\Facades\Log::channel('security')->info('enterprise.deleted', [
+            'actor_id'      => $user->id,
+            'enterprise_id' => $enterprise->id,
+            'ip'            => request()->ip(),
+        ]);
+
         return response()->json([
             'message' => 'Empresa removida com sucesso!'
         ]);
