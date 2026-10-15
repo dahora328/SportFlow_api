@@ -40,7 +40,7 @@ class StoreEnterpriseRequest extends FormRequest
             'zip_code' => 'required|string|max:255',
             'phone' => 'required|string|max:255',
             'email' => 'required|email|unique:enterprises,email',
-            'logo_path' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'logo_path' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'active' => 'nullable|boolean',
         ];
     }

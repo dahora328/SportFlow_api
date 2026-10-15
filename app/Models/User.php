@@ -34,11 +34,14 @@ class User extends Authenticatable implements JWTSubject
      *
      * @var list<string>
      */
+    /**
+     * is_admin fica FORA do fillable de propósito: a promoção a admin só pode
+     * ser feita via atribuição explícita nos controllers, nunca por mass-assignment.
+     */
     protected $fillable = [
         'name',
         'email',
         'password',
-        'is_admin',
         'enterprise_id',
     ];
 

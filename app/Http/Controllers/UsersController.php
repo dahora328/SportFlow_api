@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rules\Password;
 
 class UsersController extends Controller
 {
@@ -36,18 +37,19 @@ class UsersController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:6',
+            'password' => ['required', 'string', Password::min(8)->mixedCase()->numbers()->symbols()],
             'is_admin' => 'sometimes|boolean',
         ]);
 
-        $data['enterprise_id'] = $admin->enterprise_id;
-        $data['password'] = \Illuminate\Support\Facades\Hash::make($data['password']);
-        
-        if (!isset($data['is_admin'])) {
-            $data['is_admin'] = false;
-        }
+        $isAdmin = (bool) ($data['is_admin'] ?? false);
 
-        $newUser = \App\Models\User::create($data);
+        $newUser = new \App\Models\User();
+        $newUser->name = $data['name'];
+        $newUser->email = $data['email'];
+        $newUser->password = \Illuminate\Support\Facades\Hash::make($data['password']);
+        $newUser->enterprise_id = $admin->enterprise_id;
+        $newUser->is_admin = $isAdmin;
+        $newUser->save();
 
         return response()->json([
             'message' => 'Usuário criado com sucesso!',
@@ -87,17 +89,24 @@ class UsersController extends Controller
         $data = $request->validate([
             'name' => 'sometimes|string|max:255',
             'email' => 'sometimes|email|unique:users,email,' . $targetUser->id,
-            'password' => 'nullable|string|min:6',
+            'password' => ['nullable', 'string', Password::min(8)->mixedCase()->numbers()->symbols()],
             'is_admin' => 'sometimes|boolean',
         ]);
 
+        if (array_key_exists('name', $data)) {
+            $targetUser->name = $data['name'];
+        }
+        if (array_key_exists('email', $data)) {
+            $targetUser->email = $data['email'];
+        }
         if (!empty($data['password'])) {
-            $data['password'] = \Illuminate\Support\Facades\Hash::make($data['password']);
-        } else {
-            unset($data['password']);
+            $targetUser->password = \Illuminate\Support\Facades\Hash::make($data['password']);
+        }
+        if (array_key_exists('is_admin', $data)) {
+            $targetUser->is_admin = (bool) $data['is_admin'];
         }
 
-        $targetUser->update($data);
+        $targetUser->save();
 
         return response()->json([
             'message' => 'Usuário atualizado com sucesso!',
@@ -123,6 +132,13 @@ class UsersController extends Controller
         }
 
         $targetUser->delete();
+
+        \Illuminate\Support\Facades\Log::channel('security')->info('user.deleted', [
+            'actor_id'       => $admin->id,
+            'deleted_user_id' => $targetUser->id,
+            'enterprise_id'  => $admin->enterprise_id,
+            'ip'             => request()->ip(),
+        ]);
 
         return response()->json([
             'message' => 'Usuário removido com sucesso!'

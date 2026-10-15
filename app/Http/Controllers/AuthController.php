@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
@@ -39,12 +40,20 @@ class AuthController extends Controller
             ? (bool) ($request->is_admin ?? false)
             : false;
 
-        $novoUsuario = User::create([
-            'name'          => $request->name,
-            'email'         => $request->email,
-            'password'      => Hash::make($request->password),
-            'is_admin'      => $isAdmin,
+        $novoUsuario = new User();
+        $novoUsuario->name          = $request->name;
+        $novoUsuario->email         = $request->email;
+        $novoUsuario->password      = Hash::make($request->password);
+        $novoUsuario->enterprise_id = $enterpriseId;
+        $novoUsuario->is_admin      = $isAdmin;
+        $novoUsuario->save();
+
+        Log::channel('security')->info('user.created', [
+            'actor_id'      => $logado->id,
+            'new_user_id'   => $novoUsuario->id,
             'enterprise_id' => $enterpriseId,
+            'is_admin'      => $isAdmin,
+            'ip'            => request()->ip(),
         ]);
 
         return response()->json([
@@ -61,6 +70,10 @@ class AuthController extends Controller
         $credentials = $request->only('email', 'password');
 
         if (! $token = auth()->attempt($credentials)) {
+            Log::channel('security')->warning('auth.login.failed', [
+                'email' => $request->input('email'),
+                'ip'    => $request->ip(),
+            ]);
             return response()->json(['error' => 'Credenciais inválidas'], 401);
         }
 
@@ -72,6 +85,11 @@ class AuthController extends Controller
         $user->refresh_token            = hash('sha256', $plainRefreshToken);
         $user->refresh_token_expires_at = now()->addDays(7);
         $user->save();
+
+        Log::channel('security')->info('auth.login.success', [
+            'user_id' => $user->id,
+            'ip'      => $request->ip(),
+        ]);
 
         return response()->json([
             'user_id'       => $user->id,
@@ -130,6 +148,11 @@ class AuthController extends Controller
             $user->refresh_token = null;
             $user->refresh_token_expires_at = null;
             $user->save();
+
+            Log::channel('security')->info('auth.logout', [
+                'user_id' => $user->id,
+                'ip'      => request()->ip(),
+            ]);
         }
 
         auth()->logout();

@@ -94,8 +94,11 @@ class AthleteAuthorizationTest extends TestCase
             'name' => 'Admin User',
             'email' => 'admin@example.com',
             'password' => Hash::make('password'),
-            'is_admin' => true,
         ]);
+        // is_admin não é mass-assignable (proteção contra escalonamento de privilégio);
+        // em produção a promoção é feita via atribuição explícita nos controllers.
+        $admin->is_admin = true;
+        $admin->save();
 
         $athlete = Athlete::create([
             'full_name' => 'Athlete Admin',

@@ -219,6 +219,12 @@ class AthletesController extends Controller
                 $athlete->delete();
             });
 
+            Log::channel('security')->info('athlete.deleted', [
+                'actor_id'   => auth()->id(),
+                'athlete_id' => $athlete->id,
+                'ip'         => request()->ip(),
+            ]);
+
             return response()->json(null, 204);
         } catch (\Throwable $e) {
 

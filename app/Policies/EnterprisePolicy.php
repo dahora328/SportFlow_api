@@ -27,7 +27,7 @@ class EnterprisePolicy
      */
     public function create(User $user): bool
     {
-        return $user->id;
+        return (bool) $user->id;
     }
 
     /**
