@@ -45,30 +45,6 @@ class StoreEnterpriseRequest extends FormRequest
         ];
     }
 
-    public function messages()
-    {
-        return [
-            'name.required' => 'O nome é obrigatório.',
-            'social_reason.required' => 'A razão social é obrigatória.',
-            'fantasy_name.required' => 'O nome fantasia é obrigatório.',
-            'owner_name.required' => 'O nome do proprietário é obrigatório.',
-            'document.required' => 'O documento é obrigatório.',
-            'foundation_date.required' => 'A data de fundação é obrigatória.',
-            'IE.required' => 'O IE é obrigatório.',
-            'address.required' => 'O endereço é obrigatório.',
-            'number.required' => 'O número é obrigatório.',
-            'neighborhood.required' => 'O bairro é obrigatório.',
-            'city.required' => 'A cidade é obrigatória.',
-            'state.required' => 'O estado é obrigatório.',
-            'zip_code.required' => 'O código postal é obrigatório.',
-            'phone.required' => 'O telefone é obrigatório.',
-            'email.required' => 'O email é obrigatório.',
-            'email.email' => 'O email deve ser um endereço de email válido.',
-            'email.unique' => 'O email já está em uso.',
-            'logo_path.image' => 'O logo deve ser uma imagem válida.',
-            'logo_path.mimes' => 'O logo deve ser um arquivo do tipo: jpeg, png, jpg, gif, svg.',
-            'logo_path.max' => 'O logo não pode exceder 2048 kilobytes.',
-            'active.required' => 'A situação é obrigatória.',
-        ];
-    }
+    // Sem messages() próprio: as mensagens vêm da tradução central em
+    // lang/pt_BR/validation.php (regras + nomes de campos no bloco attributes).
 }

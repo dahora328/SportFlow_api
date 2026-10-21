@@ -1,0 +1,19 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Linhas de idioma de redefinição de senha
+    |--------------------------------------------------------------------------
+    */
+
+    'reset' => 'Sua senha foi redefinida.',
+    'sent' => 'Enviamos por e-mail o link de redefinição de senha.',
+    'throttled' => 'Aguarde antes de tentar novamente.',
+    'token' => 'Este token de redefinição de senha é inválido.',
+    'user' => 'Não encontramos nenhum usuário com esse endereço de e-mail.',
+
+];

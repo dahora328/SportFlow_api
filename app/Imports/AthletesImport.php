@@ -130,9 +130,18 @@ class AthletesImport implements ToArray
             }
 
             // owner_id e enterprise_id são preenchidos pelo booted() do model.
-            Athlete::create($data);
-            $this->imported++;
-            $seenDocuments[$docDigits] = $line;
+            // Protege cada linha: uma falha de banco (ex.: violação de unique)
+            // vira erro daquela linha, sem abortar o restante da importação.
+            try {
+                Athlete::create($data);
+                $this->imported++;
+                $seenDocuments[$docDigits] = $line;
+            } catch (\Throwable $e) {
+                $this->errors[] = [
+                    'line'   => $line,
+                    'errors' => ['Não foi possível salvar este atleta (verifique duplicidade de CPF/e-mail).'],
+                ];
+            }
         }
     }
 
@@ -280,37 +289,9 @@ class AthletesImport implements ToArray
             return false;
         }
 
-        $driver = Athlete::query()->getConnection()->getDriverName();
-
-        // No Postgres (produção) compara ignorando a máscara direto no banco.
-        if ($driver === 'pgsql') {
-            return Athlete::whereRaw(
-                "regexp_replace(document, '[^0-9]', '', 'g') = ?",
-                [$docDigits]
-            )->exists();
-        }
-
-        // Fallback portátil: compara contra as formas usuais (com e sem máscara).
-        return Athlete::whereIn('document', $this->documentVariants($docDigits))->exists();
-    }
-
-    /**
-     * Gera as formas usuais de um documento (apenas dígitos e mascarado) para
-     * comparação em bancos sem regexp_replace.
-     *
-     * @return array<int, string>
-     */
-    private function documentVariants(string $digits): array
-    {
-        $variants = [$digits];
-
-        if (strlen($digits) === 11) {
-            $variants[] = preg_replace('/(\d{3})(\d{3})(\d{3})(\d{2})/', '$1.$2.$3-$4', $digits);
-        } elseif (strlen($digits) === 14) {
-            $variants[] = preg_replace('/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/', '$1.$2.$3/$4-$5', $digits);
-        }
-
-        return array_unique($variants);
+        // 'document' é gravado só com dígitos (formato canônico), então a
+        // comparação por igualdade usa o índice UNIQUE da coluna.
+        return Athlete::where('document', $docDigits)->exists();
     }
 
     private function emailAlreadyExists(string $email): bool

@@ -77,6 +77,23 @@ class Athlete extends Model
         return $this->photo_path ? Storage::url($this->photo_path) : null;
     }
 
+    /**
+     * Garante que o documento (CPF/CNPJ) seja SEMPRE gravado só com dígitos.
+     *
+     * Esse é o formato canônico do sistema: com ele, o índice UNIQUE de
+     * 'document' realmente impede duplicados (mascarado x sem máscara contam
+     * como o mesmo) e as buscas por documento usam o índice. Vale para todos
+     * os caminhos de escrita (create, update, importação, factory).
+     * Mutators não rodam na leitura do banco, então registros existentes não
+     * são afetados ao carregar — só ao salvar.
+     */
+    public function setDocumentAttribute($value): void
+    {
+        $this->attributes['document'] = $value === null
+            ? null
+            : preg_replace('/\D/', '', (string) $value);
+    }
+
     public function owner()
     {
         return $this->belongsTo(User::class, 'owner_id');

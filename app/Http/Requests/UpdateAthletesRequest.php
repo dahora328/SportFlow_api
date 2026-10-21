@@ -31,7 +31,21 @@ class UpdateAthletesRequest extends FormRequest
             'marital_status' => 'nullable|string|max:50',
             'gender'        => 'nullable|string|max:50',
             'position'      => 'nullable|string|max:100',
-            'document'      => ['nullable', 'string', 'max:18', new CpfCnpjRule(), 'unique:athletes,document,' . $athlete],
+            'document'      => [
+                'nullable',
+                'string',
+                'max:18',
+                new CpfCnpjRule(),
+                // Único por empresa, ignorando a lixeira e o próprio registro,
+                // espelhando o índice UNIQUE(enterprise_id, document) WHERE deleted_at IS NULL.
+                Rule::unique('athletes', 'document')
+                    ->ignore($athlete)
+                    ->where(function ($query) {
+                        return $query
+                            ->where('enterprise_id', $this->user()->enterprise_id)
+                            ->whereNull('deleted_at');
+                    }),
+            ],
             'address'       => 'nullable|string|max:255',
             'number'        => 'nullable|string|max:10',
             'neighborhood'  => 'nullable|string|max:255',
@@ -53,11 +67,11 @@ class UpdateAthletesRequest extends FormRequest
      */
     public function messages(): array
     {
+        // Só a mensagem de domínio do CPF duplicado; o restante vem da
+        // tradução central (lang/pt_BR). As entradas de email/mobile_phone/
+        // owner_id foram removidas por não terem regra correspondente.
         return [
-            'document.unique' => 'CPF já cadastrado para outro atleta',
-            'email.unique' => 'Email já cadastrado para outro atleta',
-            'mobile_phone.unique' => 'Telefone já cadastrado para outro atleta',
-            'owner_id.exists' => 'Usuário proprietário não encontrado',
+            'document.unique' => 'Já existe um atleta cadastrado com este CPF/CNPJ.',
         ];
     }
 

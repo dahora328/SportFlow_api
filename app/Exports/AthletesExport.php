@@ -61,9 +61,10 @@ class AthletesExport implements FromQuery, WithHeadings, WithMapping, WithColumn
                 $value = \Illuminate\Support\Carbon::parse($value)->format('d/m/Y');
             }
 
-            // CPF sempre como texto, para não perder o zero à esquerda.
+            // CPF/CNPJ mascarado e legível no relatório (independe de como
+            // está gravado). Continua como texto na planilha (columnFormats).
             if ($field === 'document' && $value !== null) {
-                $value = (string) $value;
+                $value = $this->maskDocument((string) $value);
             }
 
             $row[] = $value;
@@ -90,5 +91,24 @@ class AthletesExport implements FromQuery, WithHeadings, WithMapping, WithColumn
         return [
             1 => ['font' => ['bold' => true]],
         ];
+    }
+
+    /**
+     * Aplica máscara de CPF (000.000.000-00) ou CNPJ (00.000.000/0000-00).
+     * Se não for 11 nem 14 dígitos, devolve o valor original.
+     */
+    private function maskDocument(string $value): string
+    {
+        $digits = preg_replace('/\D/', '', $value);
+
+        if (strlen($digits) === 11) {
+            return preg_replace('/(\d{3})(\d{3})(\d{3})(\d{2})/', '$1.$2.$3-$4', $digits);
+        }
+
+        if (strlen($digits) === 14) {
+            return preg_replace('/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/', '$1.$2.$3/$4-$5', $digits);
+        }
+
+        return $value;
     }
 }
