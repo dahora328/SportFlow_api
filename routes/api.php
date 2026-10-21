@@ -26,6 +26,13 @@ Route::middleware(['auth:api'])->group(function () {
         ->middleware('throttle:10,1')
         ->name('register');
 
+    // Export / Import da lista de atletas.
+    // IMPORTANTE: declaradas ANTES do apiResource para não colidir com
+    // a rota /athletes/{athlete} (show), que casaria com "export"/"import".
+    Route::get('/athletes/export', [AthletesController::class, 'export'])->name('athletes.export');
+    Route::get('/athletes/import/template', [AthletesController::class, 'importTemplate'])->name('athletes.import.template');
+    Route::post('/athletes/import', [AthletesController::class, 'import'])->name('athletes.import');
+
     Route::apiResource('athletes', AthletesController::class)->names('athletes');
     Route::apiResource('enterprises', EnterpriseController::class)->names('enterprises');
     Route::apiResource('users', \App\Http\Controllers\UsersController::class)->names('users');

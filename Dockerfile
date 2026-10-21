@@ -43,6 +43,7 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
+    libzip-dev \
     zip \
     unzip \
     libpq-dev \
@@ -50,13 +51,15 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Instala extensões PHP necessárias para o projeto
+# 'zip' é necessário para gerar/ler arquivos .xlsx (PhpSpreadsheet / maatwebsite-excel)
 RUN docker-php-ext-install \
     pdo_pgsql \
     mbstring \
     exif \
     pcntl \
     bcmath \
-    gd
+    gd \
+    zip
 
 # Ativa o mod_rewrite do Apache (essencial para as rotas do Laravel)
 RUN a2enmod rewrite
