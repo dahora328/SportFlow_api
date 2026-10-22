@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AthletesController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CepController;
 use App\Http\Controllers\EnterpriseController;
 use Illuminate\Support\Facades\Route;
 
@@ -32,6 +33,11 @@ Route::middleware(['auth:api'])->group(function () {
     Route::get('/athletes/export', [AthletesController::class, 'export'])->name('athletes.export');
     Route::get('/athletes/import/template', [AthletesController::class, 'importTemplate'])->name('athletes.import.template');
     Route::post('/athletes/import', [AthletesController::class, 'import'])->name('athletes.import');
+
+    // Busca de endereço por CEP (ViaCEP com fallback BrasilAPI).
+    Route::get('/cep/{cep}', [CepController::class, 'show'])
+        ->middleware('throttle:30,1')
+        ->name('cep.show');
 
     Route::apiResource('athletes', AthletesController::class)->names('athletes');
     Route::apiResource('enterprises', EnterpriseController::class)->names('enterprises');

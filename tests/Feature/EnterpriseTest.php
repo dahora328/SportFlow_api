@@ -40,4 +40,43 @@ class EnterpriseTest extends TestCase
         $response->assertStatus(201);
         $this->assertDatabaseHas('enterprises', ['email' => 'contato@teste.com']);
     }
+
+    public function test_enterprise_persists_address_fields_from_cep()
+    {
+        $superAdmin = User::factory()->create([
+            'is_admin' => true,
+            'enterprise_id' => null,
+        ]);
+
+        // Campos de endereço como viriam preenchidos pela busca de CEP (ViaCEP).
+        $response = $this->actingAs($superAdmin, 'api')->postJson('/api/enterprises', [
+            'name' => 'Empresa Endereco',
+            'social_reason' => 'Empresa Endereco LTDA',
+            'fantasy_name' => 'Endereco Fantasia',
+            'owner_name' => 'Dono Teste',
+            'document' => '00000000000191',
+            'foundation_date' => '2020-01-01',
+            'IE' => '123456789',
+            'address' => 'Praça da Sé',
+            'number' => '100',
+            'complement' => 'Sala 2',
+            'neighborhood' => 'Sé',
+            'city' => 'São Paulo',
+            'state' => 'SP',
+            'zip_code' => '01001000',
+            'phone' => '11999999999',
+            'email' => 'endereco@empresa.com',
+            'active' => true,
+        ]);
+
+        $response->assertStatus(201);
+        $this->assertDatabaseHas('enterprises', [
+            'email' => 'endereco@empresa.com',
+            'address' => 'Praça da Sé',
+            'neighborhood' => 'Sé',
+            'city' => 'São Paulo',
+            'state' => 'SP',
+            'zip_code' => '01001000',
+        ]);
+    }
 }
